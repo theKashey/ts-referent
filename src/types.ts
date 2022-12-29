@@ -2,13 +2,37 @@ import { Package } from '@manypkg/get-packages';
 import type { CompilerOptions } from 'typescript';
 
 export type Kind = {
-  test?: (pkg: Package['packageJson']) => boolean;
+  /**
+   * pattern to include files. Equal to tsconfig's `include` prop
+   */
   include: string[];
-  exclude?: string[];
-  types?: string[];
+  /**
+   * a static, non-relative version of includes. You can use it to import a particular file
+   */
   imports?: string[];
+  /**
+   * pattern to exclude files. Equal to tsconfig's `include` prop
+   */
+  exclude?: string[];
+  /**
+   * a static, non-relative version of includes. You can use it to ignore a particular file
+   */
+  ignores?: string[];
+  /**
+   * additional types to use. Equal to tsconfig's `types` prop
+   */
+  types?: string[];
+  /**
+   * An override to extends fields
+   */
   extends?: string;
+  /**
+   * a pointer to output directly. Can be defined as a function
+   */
   outDirRoot?: string | ((pkg: Package['packageJson'], currentDir: string) => string);
+  /**
+   * all other compiler options for a kind
+   */
   compilerOptions?: CompilerOptions;
 };
 

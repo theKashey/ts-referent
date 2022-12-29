@@ -82,8 +82,14 @@ const defineReference = (root: string, kindName: string, kind: Kind, pkg: Packag
 
   const config = {
     extends: relative(location, kind.extends || join(pkg.dir, 'tsconfig.json')),
-    include: kind.include.map((i) => `${relative(location, pkg.dir)}/${i}`),
-    exclude: kind.exclude?.map((i) => `${relative(location, pkg.dir)}/${i}`) ?? [],
+    include: [
+      ...kind.include.map((i) => `${relative(location, pkg.dir)}/${i}`),
+      ...(kind.imports?.map((i) => relative(location, i)) ?? []),
+    ],
+    exclude: [
+      ...(kind.exclude?.map((i) => `${relative(location, pkg.dir)}/${i}`) ?? []),
+      ...(kind.ignores?.map((i) => relative(location, i)) ?? []),
+    ],
     compilerOptions: {
       composite: true,
       ...kind.compilerOptions,

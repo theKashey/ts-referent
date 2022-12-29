@@ -2,7 +2,11 @@ Typescript `project-reference` builder for monorepos
 
 # API
 
-There is one CLI command - `ts-referent`, and yes, that is all 😏
+## CLI
+
+- `ts-referent build` - creates tsconfigs for every package in the monorepo
+- `ts-referent glossary tsconfig.packages.json` - creates a "global" tsconfig for all packages in the monorepo
+- `ts-referent paths tscofig.paths.json` - creates tsconfigs you might want to extend your "base" one from, as it contains all links to all local packages
 
 ## Configuration
 
@@ -26,17 +30,23 @@ Different packages can be broken down into different kinds. Think: source, tests
 
 ### Specifying kinds
 
-Kinds can be specified via `.referent.js` file you can place at any folder affecting all packages "below".
+Kinds can be specified via `.ts-referent.js` file you can place at any folder affecting all packages "below".
+
+Every such file can define 3 entities - `extends`, `entrypointResolver` and `kinds`
 
 ```tsx
-module.exports = {
-  kindName: {
-    includes: 'glob',
-    excludes: 'glob',
-    extends: 'main.tsconfig.json',
-    // types: ["extraTypes"],
-    // compilerOptions: typescriptCompilerOptions
-  },
+exports.extends = "tsconfig you should extends from"
+// only if you use them
+exports.entrypointResolver = (packageJSON, dir) => [string,string][]
+
+// the kinds
+exports.kinds = {
+    kindName: {
+      includes: ['glob'],
+      excludes: ['glob'],
+      types: ['jest'],
+
+    }
 };
 ```
 
