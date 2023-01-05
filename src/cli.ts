@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import { dirname, join, relative } from 'path';
 
-import { Package } from '@manypkg/get-packages';
 import sade from 'sade';
 
 import { getKinds, getKindsCache } from './kinds';
+import type { Package } from './package-interface';
 import { defineReference } from './references';
 import { writeJSON } from './utils/fs';
 import { globToRegExp } from './utils/glob-to-regex';

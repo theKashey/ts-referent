@@ -1,8 +1,7 @@
 import { join, relative } from 'path';
 
-import { Package } from '@manypkg/get-packages';
-
-import { Kind } from './types';
+import type { Package } from './package-interface';
+import type { Kind } from './types';
 import { valueOrFactory } from './utils/factory';
 import { writeJSON } from './utils/fs';
 import { mapReference, PackageMap } from './utils/workspace';

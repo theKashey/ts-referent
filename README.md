@@ -81,7 +81,9 @@ export default configure({baseConfig, kinds});
 
 Just call ts-referent via ts-node, tsm, or others. Or the configuration file will not be found.
 
-> `node -r tsm ts-referent build`
+Depending on your package manager
+
+> `node -r tsm ts-referent build` > `node -r tsm $(yarn bin ts-referent) build`
 
 ```tsx
 import type {EntrypointResolver, Kinds} from "ts-referent";

@@ -1,7 +1,8 @@
-import { Package } from '@manypkg/get-packages';
 import type { CompilerOptions } from 'typescript';
 
-export type Kind = {
+import { Package, PackageJSON } from './package-interface';
+
+export interface Kind {
   /**
    * pattern to include files. Equal to tsconfig's `include` prop
    */
@@ -41,7 +42,7 @@ export type Kind = {
   /**
    * Sets kind to use package dev dependencies
    */
-  useDevDependencies: boolean;
+  useDevDependencies?: boolean;
   /**
    * which other kinds this one can access?
    */
@@ -49,8 +50,8 @@ export type Kind = {
   /**
    * additional references added for any reason
    */
-  externals: string[];
-};
+  externals?: string[];
+}
 
 export type ConfigurationFile = {
   baseConfig?: string;
@@ -65,7 +66,7 @@ export type ResolvedConfiguration = {
   paths: string[];
 };
 
-export type EntrypointResolver = (pkg: Package['packageJson'], currentDir: string) => [string, string][];
+export type EntrypointResolver = (pkg: PackageJSON, currentDir: string) => [string, string][];
 export type KindSet = Record<string, Kind>;
 export type KindsConfigurationSet = KindSet | ((prev: KindSet, pkg: Package) => KindSet);
 export type KindMap = Map<string, ConfigurationFile>;

@@ -1,7 +1,6 @@
-import { Package } from '@manypkg/get-packages';
-
 import { readRulesFromFileSystem } from './configuration-discovery';
-import { KindCache, KindSet, ResolvedConfiguration } from './types';
+import type { Package } from './package-interface';
+import type { KindCache, KindSet, ResolvedConfiguration } from './types';
 import { valueOrFactory } from './utils/factory';
 
 export const getKindsCache = (packages: Package[], root: string): KindCache => {
