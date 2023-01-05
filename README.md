@@ -5,6 +5,21 @@ this one is trying to manage actually _project_ references, not _package_.
 
 It still will generate configs for all your packages and do that for **any package manager**, but can do more than just this.
 
+## Known flaws
+
+> yes, better to know them upfront
+
+- official caveats can be found at [typescript package references page](https://www.typescriptlang.org/docs/handbook/project-references.html#caveats-for-project-references)
+- types are no longer "real time", as derived `d.ts` are used instead
+  - you have to run `tsc -b --watch` to update types as you go
+  - affects only "other" projects, not the one you currently work with
+- `typescript-eslin`t` does not support project references. You need to give some another config to it and not all things can work with "one config for all"
+  - known to break `@typescript-eslint/no-unsafe-call` and `@typescript-eslint/no-unsafe-member-access`
+  - see [Support for Project References](https://github.com/typescript-eslint/typescript-eslint/issues/2094)
+- build produces at least the same (at max double) of files you already had. That is a lot of files
+  - consider adding `.referent` directory containing all generated configs and typescript output files into `.gitignore`
+    - really a recommendation, but this will delay "spin up" of repo in local or CI as everything has to be build first
+
 # API
 
 ```bash
@@ -32,7 +47,7 @@ Different packages can be broken down into different kinds. Think: source, tests
 
 ### Kinds
 
-- `Kind` is an include pattern
+- `Kind` is an include pattern and a `slice` of your code you can `reference`
   - and every include pattern can specify exclude pattern as well
 - Every `kind` can specify
   - which `external definitions` it should include
@@ -131,6 +146,7 @@ export default configure({
       ...base,
       // "wire" externals defined in package json as "extra" references to a given package
       externals: currentPackage.packageJson.externals,
+      types: [...(base.types || []), 'node'],
       exclude: ['**/*.spec.*'],
     },
     tests: {
@@ -142,7 +158,34 @@ export default configure({
 });
 ```
 
-The last example is a good demonstraction of the essence of project references, the [one from the official documentation](https://www.typescriptlang.org/docs/handbook/project-references.html).
+### Altering kinds
+
+Just yesterday you were able to put whatever you need to any tsconfig you want. This is no longer possible.
+While it might sound as a good idea to _preserve_ some settings from the original config, "slicing" everything into the pieces has to follow different logic
+
+This is why, as you might see in the example above - in order to alter config you have to alter an applied kind.
+This is relatively rare operation, still worth a few handy tools.
+
+```tsx
+// packages/some/package/tsconfig.referent.ts
+import { alter } from 'ts-referent';
+
+export default alter((currentPackage) => ({
+  base: {
+    // is equal to the implicit logic in the example above
+    externals: currentPackage.packageJson.externals,
+    types: ['node'],
+    exclude: ['**/*.spec.*'],
+  },
+  tests: {
+    include: ['**/*.spec.*'],
+    // tests can "access" base. base cannot access tests
+    references: ['base'],
+  },
+}));
+```
+
+The last example is a good demonstration of the essence of project references, the [one from the official documentation](https://www.typescriptlang.org/docs/handbook/project-references.html).
 
 ## See also
 

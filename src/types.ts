@@ -10,7 +10,7 @@ export interface Kind {
   /**
    * a static, non-relative version of includes. You can use it to import a particular file
    */
-  imports?: string[];
+  import?: string[];
   /**
    * pattern to exclude files. Equal to tsconfig's `include` prop
    */
@@ -18,11 +18,16 @@ export interface Kind {
   /**
    * a static, non-relative version of includes. You can use it to ignore a particular file
    */
-  ignores?: string[];
+  ignore?: string[];
   /**
    * additional types to use. Equal to tsconfig's `types` prop
    */
   types?: string[];
+
+  /**
+   * particular files to include
+   */
+  files?: string[];
   /**
    * An override to extends fields
    */

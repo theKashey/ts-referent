@@ -3,6 +3,7 @@ type PackageExports = string | { [key: string]: PackageExports };
 export interface PackageJSON {
   name: string;
   version: string;
+  main?: string;
   dependencies?: { [key: string]: string };
   peerDependencies?: { [key: string]: string };
   devDependencies?: { [key: string]: string };

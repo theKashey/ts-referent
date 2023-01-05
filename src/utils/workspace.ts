@@ -3,6 +3,8 @@ import { relative } from 'path';
 import { findRootSync } from '@manypkg/find-root';
 import { getPackages } from '@manypkg/get-packages';
 
+import { Package } from '../package-interface';
+
 export const getRoot = (): string => {
   try {
     return findRootSync(process.cwd());
@@ -11,7 +13,7 @@ export const getRoot = (): string => {
   }
 };
 
-export const getWorkspace = async (root: string) => {
+export const getWorkspace = async (root: string): Promise<Package[]> => {
   try {
     return (await getPackages(root)).packages;
   } catch (e) {

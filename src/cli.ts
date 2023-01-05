@@ -5,7 +5,7 @@ import sade from 'sade';
 
 import { getKinds, getKindsCache } from './kinds';
 import type { Package } from './package-interface';
-import { defineReference } from './references';
+import { defineReference, getConfigLocation } from './references';
 import { writeJSON } from './utils/fs';
 import { globToRegExp } from './utils/glob-to-regex';
 import { getRoot, getWorkspace, PackageMap } from './utils/workspace';
@@ -42,17 +42,21 @@ program.command('build', 'creates references').action(async () => {
       );
     }
 
+    const configLocation = getConfigLocation(root, pkg.packageJson.name);
+
     const configuration = {
       extends: relative(pkg.dir, conf.baseConfig),
       include: [],
       exclude: [],
       references: Object.keys(kinds).map((kind) => ({
-        path: relative(pkg.dir, defineReference(root, kind, kinds[kind], pkg, packageMap)),
+        path: relative(pkg.dir, defineReference(configLocation, kind, kinds[kind], pkg, packageMap)),
       })),
       compilerOptions: {
         composite: true,
         baseUrl: '.',
+        types: [],
         noEmit: false,
+        tsBuildInfoFile: relative(pkg.dir, join(configLocation, '.cache', 'main-reference')),
       },
     };
     const pkgConfig = join(pkg.dir, 'tsconfig.json');
@@ -103,9 +107,11 @@ program.command('paths <configFileName>', 'generates glossary for paths used in 
           throw new Error('no configuration files has been found for ' + pkg.dir);
         }
 
-        [...(entrypointResolver?.(pkg.packageJson, pkg.dir) ?? []), ['', '']].forEach(([entry, point]) => {
-          acc[`${pkg.packageJson.name}${entry}`] = [join(pkg.dir, point)];
-        });
+        [...(entrypointResolver?.(pkg.packageJson, pkg.dir) ?? []), ['', pkg.packageJson.main || '']].forEach(
+          ([entry, point]) => {
+            acc[`${pkg.packageJson.name}${entry}`] = [join(pkg.dir, point)];
+          }
+        );
 
         return acc;
       }, {}),
