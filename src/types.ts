@@ -34,14 +34,39 @@ export type Kind = {
    * all other compiler options for a kind
    */
   compilerOptions?: CompilerOptions;
+  /**
+   * Sets kind to use package dependencies
+   */
+  useDependencies: boolean;
+  /**
+   * Sets kind to use package dev dependencies
+   */
+  useDevDependencies: boolean;
+  /**
+   * which other kinds this one can access?
+   */
+  references?: string[];
+  /**
+   * additional references added for any reason
+   */
+  externals: string[];
 };
 
 export type ConfigurationFile = {
-  extends?: string;
-  kinds?: KindSet;
-  entrypointResolver?: (pkg: Package['packageJson'], currentDir: string) => [string, string][];
+  baseConfig?: string;
+  kinds?: KindsConfigurationSet;
+  entrypointResolver?: EntrypointResolver;
 };
 
+export type ResolvedConfiguration = {
+  baseConfig: string | undefined;
+  kinds: KindSet;
+  entrypointResolver: EntrypointResolver | undefined;
+  paths: string[];
+};
+
+export type EntrypointResolver = (pkg: Package['packageJson'], currentDir: string) => [string, string][];
 export type KindSet = Record<string, Kind>;
+export type KindsConfigurationSet = KindSet | ((prev: KindSet, pkg: Package) => KindSet);
 export type KindMap = Map<string, ConfigurationFile>;
 export type KindCache = ReadonlyArray<[string, ConfigurationFile]>;

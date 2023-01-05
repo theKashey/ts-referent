@@ -1,27 +1,19 @@
 import { dirname, join } from 'path';
 
-import { KindMap, KindSet } from './types';
+import { ConfigurationFile, KindMap } from './types';
+import { requireConfigurationFile } from './utils/require-indirection';
 
-export const requireConfigurationFile = (filename: string): KindSet => {
-  try {
-    // check file existence. Return empty array if file does not exists
-    require.resolve(filename);
-  } catch (e) {
-    return {};
-  }
+const EMPTY: ConfigurationFile = {};
 
-  return require(filename);
-};
-
-const loadData = (location: string): KindSet => {
+const loadData = (location: string): ConfigurationFile => {
   if (!location) {
-    return {};
+    return EMPTY;
   }
 
-  return requireConfigurationFile(join(location, '.ts-referent'));
+  return requireConfigurationFile(join(location, 'tsconfig.referent')) || EMPTY;
 };
 
-const cachedLookup = (top: string, location: string, cache: KindMap, rowCache: KindSet) => {
+const cachedLookup = (top: string, location: string, cache: KindMap) => {
   if (location === '/' || !location.includes(top)) {
     return;
   }
@@ -33,20 +25,13 @@ const cachedLookup = (top: string, location: string, cache: KindMap, rowCache: K
   const kinds = loadData(location);
   cache.set(location, kinds);
 
-  //validation
-  Object.keys(kinds).forEach((kind) => {
-    if (rowCache.hasOwnProperty(kind)) {
-      throw new Error('duplicate kind found - ' + kind);
-    }
-  });
-
-  cachedLookup(top, dirname(location), cache, { ...rowCache, ...kinds });
+  cachedLookup(top, dirname(location), cache);
 };
 
 export const readRulesFromFileSystem = (top: string, edges: string[]): KindMap => {
   const cache: KindMap = new Map();
 
-  edges.forEach((edge) => cachedLookup(top, edge, cache, {}));
+  edges.forEach((edge) => cachedLookup(top, edge, cache));
 
-  return cache;
+  return new Map(Array.from(cache.entries()).filter((entity) => entity[1] !== EMPTY));
 };
