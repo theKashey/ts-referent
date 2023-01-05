@@ -51,6 +51,7 @@ program.command('build', 'creates references').action(async () => {
       })),
       compilerOptions: {
         composite: true,
+        baseUrl: '.',
         noEmit: false,
       },
     };
@@ -96,7 +97,11 @@ program.command('paths <configFileName>', 'generates glossary for paths used in 
   writeJSON(fileName, {
     compilerOptions: {
       paths: packages.reduce<Record<string, string[]>>((acc, pkg) => {
-        const { entrypointResolver } = getKinds(kindsCache, pkg.dir, pkg);
+        const { entrypointResolver, paths } = getKinds(kindsCache, pkg.dir, pkg);
+
+        if (!paths.length) {
+          throw new Error('no configuration files has been found for ' + pkg.dir);
+        }
 
         [...(entrypointResolver?.(pkg.packageJson, pkg.dir) ?? []), ['', '']].forEach(([entry, point]) => {
           acc[`${pkg.packageJson.name}${entry}`] = [join(pkg.dir, point)];
