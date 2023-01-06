@@ -9,6 +9,8 @@ It still will generate configs for all your packages and do that for **any packa
 
 > yes, better to know them upfront
 
+😅🫠👨‍🔬 Let me be honest - project references gave me quite the miserable experience. Everything blew up and I still not sure am I happy or not...
+
 - official caveats can be found at [typescript package references page](https://www.typescriptlang.org/docs/handbook/project-references.html#caveats-for-project-references)
 - types are no longer "real time", as derived `d.ts` are used instead
   - you have to run `tsc -b --watch` to update types as you go

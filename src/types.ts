@@ -6,28 +6,27 @@ export interface Kind {
   /**
    * pattern to include files. Equal to tsconfig's `include` prop
    */
-  include: string[];
+  include: ReadonlyArray<string>;
   /**
    * a static, non-relative version of includes. You can use it to import a particular file
    */
-  import?: string[];
+  import?: ReadonlyArray<string>;
   /**
    * pattern to exclude files. Equal to tsconfig's `include` prop
    */
-  exclude?: string[];
+  exclude?: ReadonlyArray<string>;
   /**
    * a static, non-relative version of includes. You can use it to ignore a particular file
    */
-  ignore?: string[];
+  ignore?: ReadonlyArray<string>;
   /**
    * additional types to use. Equal to tsconfig's `types` prop
    */
-  types?: string[];
-
+  types?: ReadonlyArray<string>;
   /**
    * particular files to include
    */
-  files?: string[];
+  files?: ReadonlyArray<string>;
   /**
    * An override to extends fields
    */
@@ -51,28 +50,25 @@ export interface Kind {
   /**
    * which other kinds this one can access?
    */
-  references?: string[];
+  references?: ReadonlyArray<string>;
   /**
    * additional references added for any reason
    */
-  externals?: string[];
+  externals?: ReadonlyArray<string>;
 }
-
 export type ConfigurationFile = {
   baseConfig?: string;
   kinds?: KindsConfigurationSet;
   entrypointResolver?: EntrypointResolver;
 };
-
 export type ResolvedConfiguration = {
   baseConfig: string | undefined;
   kinds: KindSet;
   entrypointResolver: EntrypointResolver | undefined;
-  paths: string[];
+  paths: ReadonlyArray<string>;
 };
-
-export type EntrypointResolver = (pkg: PackageJSON, currentDir: string) => [string, string][];
+export type EntrypointResolver = (pkg: PackageJSON, currentDir: string) => ReadonlyArray<readonly [string, string]>;
 export type KindSet = Record<string, Kind>;
 export type KindsConfigurationSet = KindSet | ((prev: KindSet, pkg: Package) => KindSet);
 export type KindMap = Map<string, ConfigurationFile>;
-export type KindCache = ReadonlyArray<[string, ConfigurationFile]>;
+export type KindCache = ReadonlyArray<readonly [string, ConfigurationFile]>;
