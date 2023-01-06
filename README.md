@@ -25,6 +25,16 @@ It still will generate configs for all your packages and do that for **any packa
   - consider adding `.referent` directory containing all generated configs and typescript output files into `.gitignore`
     - really a recommendation, but this will delay "spin up" of repo in local or CI as everything has to be build first
 
+### Keep in mind
+
+- your base `tsconfig.json` should explicitly have `types:[]` in `compilerOptions`. That will disable automated `@types` import
+- **never** put _glossary_ into `tsconfig.json`, use `tsconfig.projects.json`. Otherwise, WebStorm TypeScript server will hang.
+  - `tsc -b tsconfig.projects.json` will build stuff for you
+
+---
+
+If you agree to enter the new (but not always shiny) world, lets continue ⬇️
+
 # API
 
 ```bash
