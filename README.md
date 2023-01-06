@@ -13,6 +13,11 @@ It still will generate configs for all your packages and do that for **any packa
 - types are no longer "real time", as derived `d.ts` are used instead
   - you have to run `tsc -b --watch` to update types as you go
   - affects only "other" projects, not the one you currently work with
+- types are not emitted in presence of any error - [issue](https://github.com/microsoft/TypeScript/issues/38537), [another issue](https://github.com/microsoft/TypeScript/issues/32651)
+  - this is more a "feature" than a bug - only totally correct projects generates output
+  - this is not how you were able to "build" a package before
+  - it enforces you first to fix the package, then fix package consumers
+    - by extracting tests and storybooks to a separate `kinds` you can restore the "old" behavior by minimizing "self-checks" in the package itself
 - `typescript-eslin`t` does not support project references. You need to give some another config to it and not all things can work with "one config for all"
   - known to break `@typescript-eslint/no-unsafe-call` and `@typescript-eslint/no-unsafe-member-access`
   - see [Support for Project References](https://github.com/typescript-eslint/typescript-eslint/issues/2094)
