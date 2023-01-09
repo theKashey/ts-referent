@@ -13,7 +13,7 @@ It still will generate configs for all your packages and do that for **any packa
 
 - official caveats can be found at [typescript package references page](https://www.typescriptlang.org/docs/handbook/project-references.html#caveats-for-project-references)
 - types are no longer "real time", as derived `d.ts` are used instead
-  - you have to run `tsc -b --watch` to update types as you go
+  - you have to update types as you go (see details below)
   - affects only "other" projects, not the one you currently work with
 - types are not emitted in presence of any error - [issue](https://github.com/microsoft/TypeScript/issues/38537), [another issue](https://github.com/microsoft/TypeScript/issues/32651)
   - this is more a "feature" than a bug - only totally correct projects generates output
@@ -32,6 +32,14 @@ It still will generate configs for all your packages and do that for **any packa
 - your base `tsconfig.json` should explicitly have `types:[]` in `compilerOptions`. That will disable automated `@types` import
 - **never** put _glossary_ into `tsconfig.json`, use `tsconfig.projects.json`. Otherwise, WebStorm TypeScript server will hang.
   - `tsc -b tsconfig.projects.json` will build stuff for you
+- you need to constantly compile TS->JS or your changes will not be "reflected"
+  - Importing modules from a referenced project will instead load its output declaration file (.d.ts)
+    - declarations should be kept up to date
+  - for small projects you can use `tsc -b --watch`
+    - for large projects that is not possible
+    - and not needed
+  - 👉 for WebStorm enable `Recompile on changes` in TypeScript settings. This option is expected to be disabled for your old setup.
+  - 👉 VSC should handle project references out of the box
 
 ---
 
@@ -45,10 +53,16 @@ yarn add --dev ts-referent
 
 ## CLI
 
+### Project references
+
 - `ts-referent build` - creates tsconfigs for every package in the monorepo
-- `ts-referent glossary tsconfig.packages.json` - creates a "global" tsconfig for all packages in the monorepo
-- `ts-referent paths tscofig.paths.json` - creates tsconfigs you might want to extend your "base" one from, as it
-  contains all links to all local packages
+- `ts-referent glossary tsconfig.packages.json` - creates a "global" tsconfig referencing all packages in the monorepo
+  - there are two available filters `--filter-by-name` and `--filter-by-folder`, both accepting globs to generate references not to "all" packages
+
+### Optional
+
+- `ts-referent paths tscofig.paths.json` - creates tsconfigs "aliases" you might want to extend your "base" one from, as it
+  contains all links to all local packages and helps with autoimports and other stuff.
 
 ## Configuration
 
@@ -203,6 +217,28 @@ export default alter((currentPackage) => ({
 ```
 
 The last example is a good demonstration of the essence of project references, the [one from the official documentation](https://www.typescriptlang.org/docs/handbook/project-references.html).
+
+### Type augmentation
+
+In some cases you might need to work with non standard package.jsons, still willing to be typesafe.
+Note in the example above the extra field `externals` which is not a part of package.json standard.
+There could be many more fields you might find useful - entrypoint, client/server/workers, dev/prod - to affect available types and relations.
+To make them "visible" and "accepted" by `ts-referent` one can use typescript declaration merging
+
+```ts
+declare module 'ts-referent' {
+  interface PackageJSON {
+    // "extend" by a new field
+    externals?: ReadonlyArray<string>;
+  }
+}
+export default alter((currentPackage) => ({
+  base: {
+    // the new field is now a part of packageJson
+    externals: currentPackage.packageJson.externals,
+  }
+});
+```
 
 ## See also
 
