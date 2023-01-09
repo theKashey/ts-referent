@@ -240,6 +240,11 @@ export default alter((currentPackage) => ({
 });
 ```
 
+#### Note on declaration merging and package references
+
+Package references do affect module augmentation due the way `d.ts` is generated from the source files.
+If augmentation is no longer working for you please check [related issue](https://github.com/microsoft/TypeScript/issues/42853) and (long story short) write `d.ts` manually.
+
 ## See also
 
 - https://github.com/azu/monorepo-utils/tree/master/packages/@monorepo-utils/workspaces-to-typescript-project-references
