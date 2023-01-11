@@ -29,10 +29,21 @@ It still will generate configs for all your packages and do that for **any packa
 
 ### Keep in mind
 
-- your base `tsconfig.json` should explicitly have `types:[]` in `compilerOptions`. That will disable automated `@types` import
-- **never** put _glossary_ into `tsconfig.json`, use `tsconfig.projects.json`. Otherwise, WebStorm TypeScript server will hang.
+#### The most important moments
+
+- ⚠️ your base `tsconfig.json` should explicitly have `types:[]` in `compilerOptions`. That will disable automated `@types` import and this is a feature you want.
+- ⚠️ **never** put _glossary_ into `tsconfig.json`, use `tsconfig.projects.json`. Otherwise, WebStorm TypeScript server will hang.
   - `tsc -b tsconfig.projects.json` will build stuff for you
+- ⚠️ keep `include` all your code in the top level `tsconfig`. Worry not - the nested tsconfig will override this setting, but "showing" your code to TypeScript will enable
+  cross-package **auto imports**. Without it auto-import capability will be deeply limited
+  - [issue](vercel/turbo#331), [another issue](https://github.com/microsoft/TypeScript/issues/39778)
+  - expected to be [improved in TS 5](https://github.com/microsoft/TypeScript/issues/51269)
+
+#### Other things to know
+
 - you need to constantly compile TS->JS or your changes will not be "reflected"
+  - 🫠 you actually dont need to do that since TS3.7, unless you have [disableSourceOfProjectReferenceRedirect](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#build-free-editing-with-project-references) enabled,
+    but there are examples when it's working only described mode, and actually that makes sence
   - Importing modules from a referenced project will instead load its output declaration file (.d.ts)
     - declarations should be kept up to date
   - for small projects you can use `tsc -b --watch`
