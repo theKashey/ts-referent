@@ -1,9 +1,8 @@
-import { relative } from 'path';
-
 import { findRootSync } from '@manypkg/find-root';
 import { getPackages } from '@manypkg/get-packages';
 
 import { Package } from '../package-interface';
+import { relativeToLocal } from './paths';
 
 export const getRoot = (): string => {
   try {
@@ -27,4 +26,4 @@ export const mapReference = (deps: Record<string, string> | undefined, root: str
   Object.keys(deps || [])
     .map((dep) => packageMap[dep])
     .filter(Boolean)
-    .map((location) => ({ path: relative(root, location) }));
+    .map((location) => ({ path: relativeToLocal(root, location) }));

@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-import { dirname, join, relative } from 'path';
+import { dirname, join } from 'path';
 
 import sade from 'sade';
 
 import { getKinds, getKindsCache } from './kinds';
 import type { Package } from './package-interface';
-import { defineReference, getConfigLocation } from './references';
+import { getConfigLocation } from './references';
+import { definePackageConfig } from './tsconfigs';
 import { writeJSON } from './utils/fs';
 import { globToRegExp } from './utils/glob-to-regex';
+import { relativeToLocal } from './utils/paths';
 import { getRoot, getWorkspace, PackageMap } from './utils/workspace';
 
 const program = sade('ts-referent', false).version(require('../../package.json').version);
@@ -24,41 +26,15 @@ program.command('build', 'creates references').action(async () => {
   }, {});
 
   packages.forEach((pkg) => {
-    const { kinds, paths, ...conf } = getKinds(kindsCache, pkg.dir, pkg);
+    const config = getKinds(kindsCache, pkg.dir, pkg);
 
-    if (!paths.length) {
+    if (!config.paths.length) {
       throw new Error('no configuration files has been found for ' + pkg.dir);
-    }
-
-    if (!conf.baseConfig) {
-      throw new Error(
-        'base `baseConfig` is not defined for ' + pkg.dir + '. Configuration files used: ' + paths.join(',')
-      );
-    }
-
-    if (!kinds || Object.keys(kinds).length === 0) {
-      throw new Error(
-        'kinds configuration is missing for ' + pkg.dir + '. Configuration files used: ' + paths.join(',')
-      );
     }
 
     const configLocation = getConfigLocation(root, pkg.packageJson.name);
 
-    const configuration = {
-      extends: relative(pkg.dir, conf.baseConfig),
-      include: [],
-      exclude: [],
-      references: Object.keys(kinds).map((kind) => ({
-        path: relative(pkg.dir, defineReference(configLocation, kind, kinds[kind], pkg, packageMap)),
-      })),
-      compilerOptions: {
-        composite: true,
-        baseUrl: '.',
-        types: [],
-        noEmit: false,
-        tsBuildInfoFile: relative(pkg.dir, join(configLocation, '.cache', 'main-reference')),
-      },
-    };
+    const configuration = definePackageConfig(config, pkg.dir, configLocation, pkg.packageJson, packageMap);
     const pkgConfig = join(pkg.dir, 'tsconfig.json');
     writeJSON(pkgConfig, configuration);
   });
@@ -89,7 +65,7 @@ program
       compilerOptions: {
         composite: true,
       },
-      references: packages.filter(packageFilter).map((pkg) => ({ path: relative(targetDir, pkg.dir) })),
+      references: packages.filter(packageFilter).map((pkg) => ({ path: relativeToLocal(targetDir, pkg.dir) })),
     });
   });
 
@@ -98,25 +74,34 @@ program.command('paths <configFileName>', 'generates glossary for paths used in 
   const packages = await getWorkspace(root);
   const kindsCache = getKindsCache(packages, root);
 
-  writeJSON(fileName, {
-    compilerOptions: {
-      paths: packages.reduce<Record<string, string[]>>((acc, pkg) => {
-        const { entrypointResolver, paths } = getKinds(kindsCache, pkg.dir, pkg);
+  writeJSON(
+    fileName,
+    {
+      compilerOptions: {
+        paths: packages.reduce<Record<string, string[]>>((acc, pkg) => {
+          const { entrypointResolver, paths } = getKinds(kindsCache, pkg.dir, pkg);
 
-        if (!paths.length) {
-          throw new Error('no configuration files has been found for ' + pkg.dir);
-        }
-
-        [...(entrypointResolver?.(pkg.packageJson, pkg.dir) ?? []), ['', pkg.packageJson.main || '']].forEach(
-          ([entry, point]) => {
-            acc[`${pkg.packageJson.name}${entry}`] = [join(pkg.dir, point)];
+          if (!paths.length) {
+            throw new Error(
+              'no configuration files has been found for ' +
+                pkg.dir +
+                '\n' +
+                "Start by placing `tsconfig.referent.js` at the project's root directory"
+            );
           }
-        );
 
-        return acc;
-      }, {}),
+          [...(entrypointResolver?.(pkg.packageJson, pkg.dir) ?? []), ['', pkg.packageJson.main || '']].forEach(
+            ([entry, point]) => {
+              acc[`${pkg.packageJson.name}${entry}`] = [join(pkg.dir, point)];
+            }
+          );
+
+          return acc;
+        }, {}),
+      },
     },
-  });
+    '/* ⚠️ please git ignore this file as it contains absolute paths working only on your machine */'
+  );
 });
 
 program.parse(process.argv);
