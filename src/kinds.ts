@@ -12,6 +12,18 @@ export const getKindsCache = (packages: Package[], root: string): KindCache => {
   ).sort((a, b) => a[0].length - b[0].length);
 };
 
+export const filterKinds = (kinds: KindSet): KindSet => {
+  const result: KindSet = {};
+
+  Object.entries(kinds).forEach(([name, kind]) => {
+    if (kind && kind.enabled !== false) {
+      result[name] = kind;
+    }
+  });
+
+  return result;
+};
+
 export const getKinds = (kindsCache: KindCache, dir: string, pkg: Package): Readonly<ResolvedConfiguration> => {
   const kinds: KindSet = {};
   const base: ResolvedConfiguration = {
@@ -31,5 +43,5 @@ export const getKinds = (kindsCache: KindCache, dir: string, pkg: Package): Read
     }
   });
 
-  return { ...base, kinds, paths };
+  return { ...base, kinds: filterKinds(kinds), paths };
 };

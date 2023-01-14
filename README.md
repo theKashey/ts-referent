@@ -36,8 +36,9 @@ It still will generate configs for all your packages and do that for **any packa
   - `tsc -b tsconfig.projects.json` will build stuff for you
 - ⚠️ keep `include` all your code in the top level `tsconfig`. Worry not - the nested tsconfig will override this setting, but "showing" your code to TypeScript will enable
   cross-package **auto imports**. Without it auto-import capability will be deeply limited
-  - [issue](vercel/turbo#331), [another issue](https://github.com/microsoft/TypeScript/issues/39778)
+  - [issue](https://github.com/vercel/turbo/issues/331), [another issue](https://github.com/microsoft/TypeScript/issues/39778)
   - expected to be [improved in TS 5](https://github.com/microsoft/TypeScript/issues/51269)
+- ⚠️regenerate references on `postinstall` hook to reflect changes in `package.json`
 
 #### Other things to know
 
@@ -263,6 +264,7 @@ If augmentation is no longer working for you please check [related issue](https:
 
 - https://github.com/azu/monorepo-utils/tree/master/packages/@monorepo-utils/workspaces-to-typescript-project-references
 - https://github.com/Bessonov/set-project-references
+- https://moonrepo.dev/docs/guides/javascript/typescript-project-refs
 
 # License
 

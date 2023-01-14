@@ -29,12 +29,14 @@ export const definePackageConfig = (
     extends: relativeToLocal(packageDir, conf.baseConfig),
     include: [],
     exclude: [],
-    references: Object.keys(kinds).map((kind) => ({
-      path: relativeToLocal(
-        packageDir,
-        defineReference(configLocation, kind, kinds[kind], packageDir, packageJson, packageMap)
-      ),
-    })),
+    references: Object.entries(kinds)
+      .filter(([, kind]) => Boolean(kind))
+      .map(([kindName, kind]) => ({
+        path: relativeToLocal(
+          packageDir,
+          defineReference(configLocation, kindName, kind!, packageDir, packageJson, packageMap)
+        ),
+      })),
     compilerOptions: {
       composite: true,
       baseUrl: '.',

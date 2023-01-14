@@ -1,11 +1,27 @@
 import { Package } from './package-interface';
-import { ConfigurationFile, Kind, KindSet } from './types';
+import { Kind, KindsConfigurationResolver, KindSet } from './types';
 import { valueOrFactory } from './utils/factory';
 
 type PartialKind = Partial<Kind>;
-type PartialKindSet = Record<string, PartialKind>;
+type PartialKindSet = Record<string, PartialKind | null>;
 
-export const alter = (kinds: PartialKindSet | ((currentParent: Package) => PartialKindSet)): ConfigurationFile => {
+type AlterOptions = {
+  /**
+   * removes kinds which are not part of a local response
+   */
+  disableUnmatchedKinds?: boolean;
+};
+
+/**
+ * alters kinds configuration merging result with the kids defined above
+ * @param kinds
+ */
+export const alter = (
+  kinds: PartialKindSet | ((currentParent: Package) => PartialKindSet),
+  options: AlterOptions = {}
+): {
+  kinds: KindsConfigurationResolver;
+} => {
   return {
     kinds: (base, currentPackage) => {
       const amendment = valueOrFactory(kinds, currentPackage) || {};
@@ -13,7 +29,18 @@ export const alter = (kinds: PartialKindSet | ((currentParent: Package) => Parti
       const result: KindSet = {};
 
       knownTypes.forEach((name) => {
-        const source: PartialKind = base[name] || {};
+        const source: Kind = base[name];
+
+        if (!source) {
+          throw new Error('could not alter non-existing kind ' + name);
+        }
+
+        if (amendment[name] === null || (options.disableUnmatchedKinds && !amendment[name])) {
+          result[name] = Object.assign({}, source, { enabled: false });
+
+          return;
+        }
+
         const alternate: PartialKind = amendment[name] || {};
         // spread array based configurations together
         const types = [...(source.types || []), ...(alternate.types || [])];

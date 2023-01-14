@@ -4,6 +4,10 @@ import { Package, PackageJSON } from './package-interface';
 
 export interface Kind {
   /**
+   * is it enabled? Can be configured via factory
+   */
+  enabled?: boolean;
+  /**
    * pattern to include files. Equal to tsconfig's `include` prop
    */
   include: ReadonlyArray<string>;
@@ -69,6 +73,7 @@ export type ResolvedConfiguration = {
 };
 export type EntrypointResolver = (pkg: PackageJSON, currentDir: string) => ReadonlyArray<readonly [string, string]>;
 export type KindSet = Record<string, Kind>;
-export type KindsConfigurationSet = KindSet | ((prev: KindSet, pkg: Package) => KindSet);
+export type KindsConfigurationResolver = (prev: KindSet, pkg: Package) => KindSet;
+export type KindsConfigurationSet = KindSet | KindsConfigurationResolver;
 export type KindMap = Map<string, ConfigurationFile>;
 export type KindCache = ReadonlyArray<readonly [string, ConfigurationFile]>;
