@@ -143,15 +143,15 @@ describe('definePackageConfig output generation', () => {
           "baseUrl": ".",
           "composite": true,
           "noEmit": false,
-          "tsBuildInfoFile": ".reference/.cache/main-reference",
+          "tsBuildInfoFile": "../.reference/.cache/main-reference",
           "types": Array [],
         },
         "exclude": Array [],
-        "extends": "./tsconfig.json",
+        "extends": "../tsconfig.json",
         "include": Array [],
         "references": Array [
           Object {
-            "path": ".reference/config/tsconfig.x.json",
+            "path": "../.reference/config/tsconfig.x.json",
           },
         ],
       }
@@ -226,7 +226,7 @@ describe('definePackageConfig output generation', () => {
     expect(result['tests/tsconfig.json']!.references).toMatchInlineSnapshot(`
       Array [
         Object {
-          "path": ".reference/config/tsconfig.z.json",
+          "path": "../.reference/config/tsconfig.z.json",
         },
       ]
     `);

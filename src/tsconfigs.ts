@@ -95,7 +95,7 @@ export const definePackageConfig = (
       constellation[join(kind.isolatedInDirectory!, 'tsconfig.json')] = defineLocalConfig(
         { kinds: { [name]: kind }, ...config },
         localRootConfig,
-        packageDir,
+        join(packageDir, kind.isolatedInDirectory!),
         configLocation,
         packageJson,
         packageMap
