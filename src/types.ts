@@ -2,11 +2,24 @@ import type { CompilerOptions } from 'typescript';
 
 import { Package, PackageJSON } from './package-interface';
 
+export type RelationMapper = (pkg: PackageJSON, dir: string) => string[];
+
 export interface Kind {
   /**
    * is it enabled? Can be configured via factory
    */
   enabled?: boolean;
+  /**
+   * isolates configuration for a given directly.
+   * ⚠️ Warning - you will not be able to reference this kind from other workspace pacakges
+   */
+  /**
+   * marks kind as internals disallowing references from the outside
+   * Can be used to hard separate tests and code
+   * requires {@see isolatedMode} setting enabled
+   */
+  internal?: true;
+  isolatedInDirectory?: string;
   /**
    * pattern to include files. Equal to tsconfig's `include` prop
    */
@@ -45,10 +58,12 @@ export interface Kind {
   compilerOptions?: CompilerOptions;
   /**
    * Sets kind to use package dependencies
+   * @default true
    */
-  useDependencies: boolean;
+  useDependencies?: boolean;
   /**
    * Sets kind to use package dev dependencies
+   * @default true
    */
   useDevDependencies?: boolean;
   /**
@@ -59,17 +74,45 @@ export interface Kind {
    * additional references added for any reason
    */
   externals?: ReadonlyArray<string>;
+
+  /**
+   * ⚠️ advanced feature
+   * allows pointing on isolated entrypoints of referenced dependencies
+   * @example
+   * ```tsx
+   * export const relationMapper = (pkg) => [
+   *  // default entry
+   *  '',
+   *  // secret aka {@see isolatedInDirectory} entry
+   *  'secretEntry/tsconfig.json']
+   */
+  relationMapper?: RelationMapper;
 }
 export type ConfigurationFile = {
+  /**
+   * tsconfig to extend
+   */
   baseConfig?: string;
+  /**
+   * confuguration of kinds to use below this point
+   */
   kinds?: KindsConfigurationSet;
+  /**
+   * entrypoint resolver for paths generation
+   */
   entrypointResolver?: EntrypointResolver;
+  /**
+   * activates package isolation mode, see documentation
+   * This will at least create one extra tsconfig per package
+   */
+  isolatedMode?: boolean;
 };
 export type ResolvedConfiguration = {
   baseConfig: string | undefined;
   kinds: KindSet;
   entrypointResolver: EntrypointResolver | undefined;
   paths: ReadonlyArray<string>;
+  isolatedMode?: boolean;
 };
 export type EntrypointResolver = (pkg: PackageJSON, currentDir: string) => ReadonlyArray<readonly [string, string]>;
 export type KindSet = Record<string, Kind>;

@@ -20,20 +20,34 @@ export const defineReference = (
 ) => {
   const location = join(configLocation, 'config');
   const output = join(valueOrFactory(kind.outDirRoot, packageJson, packageDir) ?? configLocation, 'output', kindName);
+  const configurationLocation = kind.isolatedInDirectory ? join(packageDir, kind.isolatedInDirectory) : packageDir;
+
+  const useDependencies = kind.useDependencies ?? true;
+  const useDevDependencies = kind.useDevDependencies ?? true;
 
   const config = {
-    extends: relativeToLocal(location, kind.extends || join(packageDir, 'tsconfig.json')),
+    extends: relativeToLocal(location, kind.extends || join(configurationLocation, 'tsconfig.json')),
     include: [
-      ...kind.include.map((i) => `${relativeToLocal(location, packageDir)}/${i}`),
+      ...kind.include.map((i) => `${relativeToLocal(location, configurationLocation)}/${i}`),
       ...(kind.import?.map((i) => relativeToLocal(location, i)) ?? []),
     ],
     exclude: [
-      ...(kind.exclude?.map((i) => `${relativeToLocal(location, packageDir)}/${i}`) ?? []),
+      ...(kind.exclude?.map((i) => `${relativeToLocal(location, configurationLocation)}/${i}`) ?? []),
       ...(kind.ignore?.map((i) => relativeToLocal(location, i)) ?? []),
     ],
     references: [
-      ...mapReference(kind.useDependencies ? packageJson.dependencies : undefined, location, packageMap),
-      ...mapReference(kind.useDevDependencies ? packageJson.devDependencies : undefined, location, packageMap),
+      ...mapReference(
+        useDependencies ? packageJson.dependencies : undefined,
+        location,
+        packageMap,
+        kind.relationMapper
+      ),
+      ...mapReference(
+        useDevDependencies ? packageJson.devDependencies : undefined,
+        location,
+        packageMap,
+        kind.relationMapper
+      ),
       ...(kind.references || []).map((kindName) => ({ path: `tsconfig.${kindName}.json` })),
       ...(kind.externals || []).map((path) => ({ path: relativeToLocal(location, path) })),
     ],
@@ -43,8 +57,8 @@ export const defineReference = (
       ...kind.compilerOptions,
       noEmit: false,
       outDir: relativeToLocal(location, output),
-      rootDir: relativeToLocal(location, packageDir),
-      baseUrl: relativeToLocal(location, packageDir),
+      rootDir: relativeToLocal(location, configurationLocation),
+      baseUrl: relativeToLocal(location, configurationLocation),
       tsBuildInfoFile: relativeToLocal(location, join(configLocation, '.cache', kindName)),
       types: kind.types,
     },

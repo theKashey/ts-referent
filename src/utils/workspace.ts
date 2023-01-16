@@ -1,7 +1,10 @@
+import { join } from 'path';
+
 import { findRootSync } from '@manypkg/find-root';
 import { getPackages } from '@manypkg/get-packages';
 
 import { Package } from '../package-interface';
+import { RelationMapper } from '../types';
 import { relativeToLocal } from './paths';
 
 export const getRoot = (): string => {
@@ -20,10 +23,21 @@ export const getWorkspace = async (root: string): Promise<Package[]> => {
   }
 };
 
-export type PackageMap = Record<string, string>;
+export type PackageMap = Record<string, Package>;
 
-export const mapReference = (deps: Record<string, string> | undefined, root: string, packageMap: PackageMap) =>
-  Object.keys(deps || [])
+const directMapper: RelationMapper = () => [''];
+
+export const mapReference = (
+  deps: Record<string, string> | undefined,
+  root: string,
+  packageMap: PackageMap,
+  mapper: RelationMapper = directMapper
+) => {
+  const localPackages = Object.keys(deps || [])
     .map((dep) => packageMap[dep])
-    .filter(Boolean)
+    .filter(Boolean);
+
+  return localPackages
+    .flatMap((pkg) => mapper(pkg.packageJson, pkg.dir).map((subPath) => join(pkg.dir, subPath)))
     .map((location) => ({ path: relativeToLocal(root, location) }));
+};

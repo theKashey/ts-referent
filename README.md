@@ -1,40 +1,52 @@
 Typescript `project-reference` builder for monorepos focused on "cutting" relations.
 
-While other solutions are focused on [Infering project references from common monorepo patterns / tools](https://github.com/microsoft/TypeScript/issues/25376)
+While other solutions are focused
+on [Infering project references from common monorepo patterns / tools](https://github.com/microsoft/TypeScript/issues/25376)
 this one is trying to manage actually _project_ references, not _package_.
 
-It still will generate configs for all your packages and do that for **any package manager**, but can do more than just this.
+It still will generate configs for all your packages and do that for **any package manager**, but can do more than just
+this.
 
 ## Known flaws
 
 > yes, better to know them upfront
 
-😅🫠👨‍🔬 Let me be honest - project references gave me quite the miserable experience. Everything blew up and I still not sure am I happy or not...
+😅🫠👨‍🔬 Let me be honest - project references gave me quite the miserable experience. Everything blew up and I still not
+sure am I happy or not...
 
-- official caveats can be found at [typescript package references page](https://www.typescriptlang.org/docs/handbook/project-references.html#caveats-for-project-references)
+- official caveats can be found
+  at [typescript package references page](https://www.typescriptlang.org/docs/handbook/project-references.html#caveats-for-project-references)
 - types are no longer "real time", as derived `d.ts` are used instead
   - you have to update types as you go (see details below)
   - affects only "other" projects, not the one you currently work with
-- types are not emitted in presence of any error - [issue](https://github.com/microsoft/TypeScript/issues/38537), [another issue](https://github.com/microsoft/TypeScript/issues/32651)
+- types are not emitted in presence of any
+  error - [issue](https://github.com/microsoft/TypeScript/issues/38537), [another issue](https://github.com/microsoft/TypeScript/issues/32651)
   - this is more a "feature" than a bug - only totally correct projects generates output
   - this is not how you were able to "build" a package before
   - it enforces you first to fix the package, then fix package consumers
-    - by extracting tests and storybooks to a separate `kinds` you can restore the "old" behavior by minimizing "self-checks" in the package itself
-- `typescript-eslin`t` does not support project references. You need to give some another config to it and not all things can work with "one config for all"
+    - by extracting tests and storybooks to a separate `kinds` you can restore the "old" behavior by minimizing "
+      self-checks" in the package itself
+- `typescript-eslin`t` does not support project references. You need to give some another config to it and not all
+  things can work with "one config for all"
   - known to break `@typescript-eslint/no-unsafe-call` and `@typescript-eslint/no-unsafe-member-access`
   - see [Support for Project References](https://github.com/typescript-eslint/typescript-eslint/issues/2094)
 - build produces at least the same (at max double) of files you already had. That is a lot of files
-  - consider adding `.referent` directory containing all generated configs and typescript output files into `.gitignore`
-    - really a recommendation, but this will delay "spin up" of repo in local or CI as everything has to be build first
+  - consider adding `.referent` directory containing all generated configs and typescript output files
+    into `.gitignore`
+    - really a recommendation, but this will delay "spin up" of repo in local or CI as everything has to be build
+      first
 
 ### Keep in mind
 
 #### The most important moments
 
-- ⚠️ your base `tsconfig.json` should explicitly have `types:[]` in `compilerOptions`. That will disable automated `@types` import and this is a feature you want.
-- ⚠️ **never** put _glossary_ into `tsconfig.json`, use `tsconfig.projects.json`. Otherwise, WebStorm TypeScript server will hang.
+- ⚠️ your base `tsconfig.json` should explicitly have `types:[]` in `compilerOptions`. That will disable
+  automated `@types` import and this is a feature you want.
+- ⚠️ **never** put _glossary_ into `tsconfig.json`, use `tsconfig.projects.json`. Otherwise, WebStorm TypeScript server
+  will hang.
   - `tsc -b tsconfig.projects.json` will build stuff for you
-- ⚠️ keep `include` all your code in the top level `tsconfig`. Worry not - the nested tsconfig will override this setting, but "showing" your code to TypeScript will enable
+- ⚠️ keep `include` all your code in the top level `tsconfig`. Worry not - the nested tsconfig will override this
+  setting, but "showing" your code to TypeScript will enable
   cross-package **auto imports**. Without it auto-import capability will be deeply limited
   - [issue](https://github.com/vercel/turbo/issues/331), [another issue](https://github.com/microsoft/TypeScript/issues/39778)
   - expected to be [improved in TS 5](https://github.com/microsoft/TypeScript/issues/51269)
@@ -43,14 +55,17 @@ It still will generate configs for all your packages and do that for **any packa
 #### Other things to know
 
 - you need to constantly compile TS->JS or your changes will not be "reflected"
-  - 🫠 you actually dont need to do that since TS3.7, unless you have [disableSourceOfProjectReferenceRedirect](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#build-free-editing-with-project-references) enabled,
+  - 🫠 you actually dont need to do that since TS3.7, unless you
+    have [disableSourceOfProjectReferenceRedirect](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#build-free-editing-with-project-references)
+    enabled,
     but there are examples when it's working only described mode, and actually that makes sence
   - Importing modules from a referenced project will instead load its output declaration file (.d.ts)
     - declarations should be kept up to date
   - for small projects you can use `tsc -b --watch`
     - for large projects that is not possible
     - and not needed
-  - 👉 for WebStorm enable `Recompile on changes` in TypeScript settings. This option is expected to be disabled for your old setup.
+  - 👉 for WebStorm enable `Recompile on changes` in TypeScript settings. This option is expected to be disabled for
+    your old setup.
   - 👉 VSC should handle project references out of the box
 
 ---
@@ -68,15 +83,20 @@ yarn add --dev ts-referent
 ### Project references
 
 - `ts-referent build` - creates tsconfigs for every package in the monorepo
-  - ⚠️be sure to run this command on `postinstall` hook to keep `tsconfig` references and `package.json` dependencies in sync
+  - ⚠️be sure to run this command on `postinstall` hook to keep `tsconfig` references and `package.json` dependencies
+    in sync
 - `ts-referent glossary tsconfig.packages.json` - creates a "global" tsconfig referencing all packages in the monorepo
-  - 💡consider generating this file on demand. It also does not have to be committed. Only a "global type check" needs it.
-  - there are two available filters `--filter-by-name` and `--filter-by-folder`, both accepting globs to generate references not to "all" packages
-    - you might need this command in rare situations when you refer to a file/project which is not a part of package dependencies. This might happen with some autogenerated "temporal" files in modular monilith.
+  - 💡consider generating this file on demand. It also does not have to be committed. Only a "global type check" needs
+    it.
+  - there are two available filters `--filter-by-name` and `--filter-by-folder`, both accepting globs to generate
+    references not to "all" packages
+    - you might need this command in rare situations when you refer to a file/project which is not a part of package
+      dependencies. This might happen with some autogenerated "temporal" files in modular monilith.
 
 ### Optional
 
-- `ts-referent paths tscofig.paths.json` - creates tsconfigs "aliases" you might want to extend your "base" one from, as it
+- `ts-referent paths tscofig.paths.json` - creates tsconfigs "aliases" you might want to extend your "base" one from, as
+  it
   contains all links to all local packages and helps with autoimports and other stuff.
 
 ## Configuration
@@ -135,6 +155,7 @@ module.exports/*: ConfigrationFile*/ = {
 //or
 
 import {configure} from 'ts-referent';
+
 export default configure({baseConfig, kinds});
 ```
 
@@ -181,7 +202,10 @@ export default configure({
 
 ## Advanced
 
-Kinds configuration can be nested and also can be based on functions
+Kinds configuration can be nested and also can be based on functions to _derive_ new configuration from the previous one
+
+> note: confugaration returned from a local function will be **merged** with the one above.
+> In order to _remove_ kind you need or 1) enable:false 2) or assign null 3) or use `disableUnmatchedKinds` from `alter`
 
 ```tsx
 export default configure({
@@ -207,7 +231,8 @@ export default configure({
 ### Altering kinds
 
 Just yesterday you were able to put whatever you need to any tsconfig you want. This is no longer possible.
-While it might sound as a good idea to _preserve_ some settings from the original config, "slicing" everything into the pieces has to follow different logic
+While it might sound as a good idea to _preserve_ some settings from the original config, "slicing" everything into the
+pieces has to follow different logic
 
 This is why, as you might see in the example above - in order to alter config you have to alter an applied kind.
 This is relatively rare operation, still worth a few handy tools.
@@ -231,34 +256,86 @@ export default alter((currentPackage) => ({
 }));
 ```
 
-The last example is a good demonstration of the essence of project references, the [one from the official documentation](https://www.typescriptlang.org/docs/handbook/project-references.html).
+The last example is a good demonstration of the essence of project references,
+the [one from the official documentation](https://www.typescriptlang.org/docs/handbook/project-references.html).
+
+`alter` accepts a second argument with options:
+
+- `disableUnmatchedKinds` - removes all unmodified kinds
+
+```tsx
+export default alter(
+  (currentPackage) => ({
+    base: {
+      // is equal to the implicit logic in the example above
+      externals: currentPackage.packageJson.externals,
+      types: ['node'],
+      exclude: ['**/*.spec.*'],
+    },
+    tests: {}, // just keep tests
+  }),
+  {
+    // only base and test will be predefined for folders below
+    disableUnmatchedKinds: true,
+  }
+);
+```
 
 ### Type augmentation
 
 In some cases you might need to work with non standard package.jsons, still willing to be typesafe.
 Note in the example above the extra field `externals` which is not a part of package.json standard.
-There could be many more fields you might find useful - entrypoint, client/server/workers, dev/prod - to affect available types and relations.
+There could be many more fields you might find useful - entrypoint, client/server/workers, dev/prod - to affect
+available types and relations.
 To make them "visible" and "accepted" by `ts-referent` one can use typescript declaration merging
 
 ```ts
 declare module 'ts-referent' {
-  interface PackageJSON {
-    // "extend" by a new field
-    externals?: ReadonlyArray<string>;
-  }
+    interface PackageJSON {
+        // "extend" by a new field
+        externals?: ReadonlyArray<string>;
+    }
 }
 export default alter((currentPackage) => ({
-  base: {
-    // the new field is now a part of packageJson
-    externals: currentPackage.packageJson.externals,
-  }
+    base: {
+        // the new field is now a part of packageJson
+        externals: currentPackage.packageJson.externals,
+    }
 });
 ```
 
 #### Note on declaration merging and package references
 
 Package references do affect module augmentation due the way `d.ts` is generated from the source files.
-If augmentation is no longer working for you please check [related issue](https://github.com/microsoft/TypeScript/issues/42853) and (long story short) write `d.ts` manually.
+If augmentation is no longer working for you please
+check [related issue](https://github.com/microsoft/TypeScript/issues/42853) and (long story short) write `d.ts`
+manually.
+
+## Isolation
+
+Project references works in two different ways:
+
+- for **top level** builds and checks, where you can _reference_ different projects to compile
+- from **bottom level** where IDE is trying to find the _nearest matching_ tsconfig to use
+
+By default, both variants are supported, but this lead to suboptimal situation when `package`'s `tsconfig` references
+all used `kinds`,
+meaning that any other package _referencing_ a given one also _references_ not only it's source, but also it tests and
+all other really not _public_ pieces.
+
+There are 2 ways to improve this moment, however there is no proof that this _improvement_ anything (like speed) except
+the _purity_ of the solution.
+
+- per kind: `isolatedInDirectory` - will put `kind`'s configuration inside a nested
+  directory - `cypress`, `__tests__`, `examples` - making it really a "local" configuration
+  - other kinds of the **same package** can still access it by specifying `references` at own kind configuration
+  - to reference _hidden_ directory from workspace one can use `relationMapper` at own kind configuration. Do that on
+    your own risk
+- global: `isolatedMode` at the root `tsconfig.referent.js` flag will activate package isolation mode
+  - every package will produce two configs - `tsconfig.json` for the IDE and `tsconfig.public.json` for external
+    references
+  - `internal` per kind configuration proretly will remove kind from the `public` interface, thus separating private
+    sources(tests) with the "real" ones(source)
 
 ## See also
 
