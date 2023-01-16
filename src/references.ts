@@ -14,6 +14,7 @@ export const defineReference = (
   configLocation: string,
   kindName: string,
   kind: Kind,
+  isolationMode: boolean,
   packageDir: string,
   packageJson: PackageJSON,
   packageMap: PackageMap
@@ -24,6 +25,8 @@ export const defineReference = (
 
   const useDependencies = kind.useDependencies ?? true;
   const useDevDependencies = kind.useDevDependencies ?? true;
+
+  const defaultEntry = isolationMode ? `tsconfig.public.json` : `tsconfig.json`;
 
   const config = {
     extends: relativeToLocal(location, kind.extends || join(configurationLocation, 'tsconfig.json')),
@@ -40,12 +43,14 @@ export const defineReference = (
         useDependencies ? packageJson.dependencies : undefined,
         location,
         packageMap,
+        defaultEntry,
         kind.relationMapper
       ),
       ...mapReference(
         useDevDependencies ? packageJson.devDependencies : undefined,
         location,
         packageMap,
+        defaultEntry,
         kind.relationMapper
       ),
       ...(kind.references || []).map((kindName) => ({ path: `tsconfig.${kindName}.json` })),

@@ -85,4 +85,34 @@ describe('alternation', () => {
   it('throws on undefined', () => {
     expect(() => alter({ newOne: {} }).kinds({ properOne: {} as any }, {} as any)).toThrowError();
   });
+
+  it('adds new one of told explicitly', () => {
+    expect(alter({ newOne: { expectExtension: false, include: [] } }).kinds({ properOne: {} as any }, {} as any))
+      .toMatchInlineSnapshot(`
+      Object {
+        "newOne": Object {
+          "compilerOptions": Object {},
+          "exclude": Array [],
+          "externals": Array [],
+          "files": Array [],
+          "ignore": Array [],
+          "import": Array [],
+          "include": Array [],
+          "references": Array [],
+          "types": Array [],
+        },
+        "properOne": Object {
+          "compilerOptions": Object {},
+          "exclude": Array [],
+          "externals": Array [],
+          "files": Array [],
+          "ignore": Array [],
+          "import": Array [],
+          "include": Array [],
+          "references": Array [],
+          "types": Array [],
+        },
+      }
+    `);
+  });
 });

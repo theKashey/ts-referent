@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { existsSync } from 'fs';
 import { dirname, join } from 'path';
 
 import sade from 'sade';
@@ -34,7 +35,9 @@ program.command('build', 'creates references').action(async () => {
 
     const configLocation = getConfigLocation(root, pkg.packageJson.name);
 
-    const configuration = definePackageConfig(config, pkg.dir, configLocation, pkg.packageJson, packageMap);
+    const configuration = definePackageConfig(config, pkg.dir, configLocation, pkg.packageJson, packageMap, (folder) =>
+      existsSync(join(pkg.dir, folder))
+    );
 
     Object.entries(configuration).forEach(([file, data]) => {
       if (data) {
@@ -58,6 +61,10 @@ program
     const kindsCache = getKindsCache(packages, root);
     const targetDir = dirname(fileName);
 
+    if (!kindsCache.length) {
+      throw new Error('no top level configuration file');
+    }
+
     const nameEx = globToRegExp(options[filterByName] || '*');
     const folderEx = globToRegExp(options[filterByFolder] || '*');
 
@@ -65,14 +72,11 @@ program
       return nameEx.test(pkg.packageJson.name) && folderEx.test(pkg.dir);
     };
 
-    const isolatedMode = kindsCache[0][1]?.isolatedMode || false;
-
     writeJSON(
       fileName,
       generateGlossaryLookup(
         packages.filter(packageFilter).map((pkg) => pkg.dir),
-        targetDir,
-        isolatedMode
+        targetDir
       )
     );
   });

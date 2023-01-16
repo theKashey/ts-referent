@@ -3,11 +3,18 @@ import { Kind, KindsConfigurationResolver, KindSet } from './types';
 import { valueOrFactory } from './utils/factory';
 
 type PartialKind = Partial<Kind>;
-type PartialKindSet = Record<string, PartialKind | null>;
+type AddedKind = Kind & {
+  /**
+   * changes alternate mode from `alter` to `create`
+   */
+  expectExtension: false;
+};
+type PartialKindSet = Record<string, PartialKind | null | AddedKind>;
 
 type AlterOptions = {
   /**
    * removes kinds which are not part of a local response
+   * @default false
    */
   disableUnmatchedKinds?: boolean;
 };
@@ -24,24 +31,41 @@ export const alter = (
 } => {
   return {
     kinds: (base, currentPackage) => {
-      const amendment = valueOrFactory(kinds, currentPackage) || {};
-      const knownTypes = new Set([...Object.keys(base), ...Object.keys(amendment)]);
+      const amendments = valueOrFactory(kinds, currentPackage) || {};
+      const knownTypes = new Set([...Object.keys(base), ...Object.keys(amendments)]);
       const result: KindSet = {};
 
       knownTypes.forEach((name) => {
-        const source: Kind = base[name];
+        const amendment = amendments[name];
 
-        if (!source) {
-          throw new Error('could not alter non-existing kind ' + name);
+        if (amendment) {
+          if ('expectExtension' in amendment) {
+            if (base[name]) {
+              console.log('error at', currentPackage.dir);
+              throw new Error('Extended to create new kind, while previous found: ' + name);
+            }
+          } else {
+            if (!base[name]) {
+              console.log('error at', currentPackage.dir);
+              throw new Error('Could not alter non-existing kind ' + name);
+            }
+          }
         }
 
-        if (amendment[name] === null || (options.disableUnmatchedKinds && !amendment[name])) {
+        const source: Kind = base[name] || {};
+
+        if (amendment === null || (options.disableUnmatchedKinds && !amendment)) {
           result[name] = Object.assign({}, source, { enabled: false });
 
           return;
         }
 
-        const alternate: PartialKind = amendment[name] || {};
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {
+          // @ts-expect-error
+          expectExtension,
+          ...alternate
+        } = amendment || {};
         // spread array based configurations together
         const types = [...(source.types || []), ...(alternate.types || [])];
         const references = [...(source.references || []), ...(alternate.references || [])];

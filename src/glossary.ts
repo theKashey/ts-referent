@@ -2,8 +2,8 @@ import { join } from 'path';
 
 import { relativeToLocal } from './utils/paths';
 
-export const generateGlossaryLookup = (directories: string[], targetDir: string, isolatedMode: boolean) => {
-  const tail = isolatedMode ? 'tsconfig.public.json' : 'tsconfig.json';
+export const generateGlossaryLookup = (directories: string[], targetDir: string) => {
+  const tail = 'tsconfig.json';
 
   return {
     files: [],

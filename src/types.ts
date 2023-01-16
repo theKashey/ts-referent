@@ -2,7 +2,7 @@ import type { CompilerOptions } from 'typescript';
 
 import { Package, PackageJSON } from './package-interface';
 
-export type RelationMapper = (pkg: PackageJSON, dir: string) => string[];
+export type RelationMapper = (defaultEntrypoint: string, pkg: PackageJSON, dir: string) => string[];
 
 export interface Kind {
   /**
@@ -80,9 +80,9 @@ export interface Kind {
    * allows pointing on isolated entrypoints of referenced dependencies
    * @example
    * ```tsx
-   * export const relationMapper = (pkg) => [
-   *  // default entry
-   *  '',
+   * export const relationMapper = (defaultEntry, pkg) => [
+   *  // default entry, you can keep it or drop it
+   *  defaultEntry,
    *  // secret aka {@see isolatedInDirectory} entry
    *  'secretEntry/tsconfig.json']
    */

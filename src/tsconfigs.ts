@@ -33,7 +33,15 @@ export const defineLocalConfig = (
       .map(([kindName, kind]) => ({
         path: relativeToLocal(
           packageDir,
-          defineReference(configLocation, kindName, kind!, packageDir, packageJson, packageMap)
+          defineReference(
+            configLocation,
+            kindName,
+            kind!,
+            conf.isolatedMode || false,
+            packageDir,
+            packageJson,
+            packageMap
+          )
         ),
       })),
     compilerOptions: {
@@ -56,7 +64,8 @@ export const definePackageConfig = (
   packageDir: string,
   configLocation: string,
   packageJson: PackageJSON,
-  packageMap: PackageMap
+  packageMap: PackageMap,
+  folderExists: (folder: string) => boolean
 ): Record<string, PackageTypeRoot | undefined> => {
   if (!config.baseConfig) {
     throw new Error(
@@ -72,6 +81,7 @@ export const definePackageConfig = (
 
   const isolatedPackages = kindsFilter(kinds, (_, kind) => Boolean(kind.isolatedInDirectory));
   const privatePackages = kindsFilter(kinds, (_, kind) => Boolean(kind.internal));
+  const createdIsolatedPackages: KindSet = {};
 
   const publicPackages = kindsFilter(kinds, (name) => !isolatedPackages[name] && !privatePackages[name]);
 
@@ -79,14 +89,18 @@ export const definePackageConfig = (
   const localRootConfig = join(packageDir, 'tsconfig.json');
 
   Object.entries(isolatedPackages).forEach(([name, kind]) => {
-    constellation[join(kind.isolatedInDirectory!, 'tsconfig.json')] = defineLocalConfig(
-      { kinds: { [name]: kind }, ...config },
-      localRootConfig,
-      packageDir,
-      configLocation,
-      packageJson,
-      packageMap
-    );
+    if (folderExists(kind.isolatedInDirectory!)) {
+      createdIsolatedPackages[name] = kind;
+
+      constellation[join(kind.isolatedInDirectory!, 'tsconfig.json')] = defineLocalConfig(
+        { kinds: { [name]: kind }, ...config },
+        localRootConfig,
+        packageDir,
+        configLocation,
+        packageJson,
+        packageMap
+      );
+    }
   });
 
   if (config.isolatedMode) {
@@ -98,29 +112,27 @@ export const definePackageConfig = (
       packageJson,
       packageMap
     );
-
-    constellation['tsconfig.json'] = defineLocalConfig(
-      { kinds: { ...publicPackages, ...privatePackages }, ...config },
-      config.baseConfig,
-      packageDir,
-      configLocation,
-      packageJson,
-      packageMap
-    );
   } else {
     if (Object.keys(privatePackages).length > 0) {
       throw new Error('internal packages require `isolatedMode` to be enabled');
     }
-
-    constellation['tsconfig.json'] = defineLocalConfig(
-      { kinds: publicPackages, ...config },
-      config.baseConfig,
-      packageDir,
-      configLocation,
-      packageJson,
-      packageMap
-    );
   }
+
+  constellation['tsconfig.json'] = defineLocalConfig(
+    {
+      kinds: {
+        ...publicPackages,
+        ...privatePackages,
+        ...createdIsolatedPackages,
+      },
+      ...config,
+    },
+    config.baseConfig,
+    packageDir,
+    configLocation,
+    packageJson,
+    packageMap
+  );
 
   return constellation;
 };

@@ -10,6 +10,8 @@ this.
 ## Known flaws
 
 > yes, better to know them upfront
+>
+> PS: The main flaw is gramma and the overall style of this document. Please help.
 
 😅🫠👨‍🔬 Let me be honest - project references gave me quite the miserable experience. Everything blew up and I still not
 sure am I happy or not...
@@ -304,9 +306,9 @@ export default alter((currentPackage) => ({
 });
 ```
 
-#### Note on declaration merging and package references
+#### Note on declaration merging and project references
 
-Package references do affect module augmentation due the way `d.ts` is generated from the source files.
+Project references do affect module augmentation due the way `d.ts` is generated from the source files.
 If augmentation is no longer working for you please
 check [related issue](https://github.com/microsoft/TypeScript/issues/42853) and (long story short) write `d.ts`
 manually.
@@ -331,11 +333,13 @@ the _purity_ of the solution.
   - other kinds of the **same package** can still access it by specifying `references` at own kind configuration
   - to reference _hidden_ directory from workspace one can use `relationMapper` at own kind configuration. Do that on
     your own risk
+  - kind will not be created if if directory does not exists
 - global: `isolatedMode` at the root `tsconfig.referent.js` flag will activate package isolation mode
   - every package will produce two configs - `tsconfig.json` for the IDE and `tsconfig.public.json` for external
     references
-  - `internal` per kind configuration proretly will remove kind from the `public` interface, thus separating private
+  - `internal` per kind configuration property will remove kind from the `public` interface, thus separating private
     sources(tests) with the "real" ones(source)
+    - there is no way to _reference_ internal kind from the workspace, only `isolatedInDirectory` one
 
 ## See also
 

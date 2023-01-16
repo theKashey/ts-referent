@@ -17,7 +17,8 @@ test('definePackageConfig throws on incomplete configuration', () => {
       '/user/x',
       '/user/x/.reference',
       {} as any,
-      {}
+      {},
+      () => true
     )
   ).toThrow();
 
@@ -32,7 +33,8 @@ test('definePackageConfig throws on incomplete configuration', () => {
       '/user/x',
       '/user/x/.reference',
       {} as any,
-      {}
+      {},
+      () => true
     )
   ).toThrow();
 });
@@ -50,7 +52,8 @@ describe('definePackageConfig output generation', () => {
         '/user/x',
         '/user/x/.reference',
         { dependencies: { y: '1', z: 2 } } as any,
-        { y: { dir: '/user/package/y', packageJson: {} as any } }
+        { y: { dir: '/user/package/y', packageJson: {} as any } },
+        () => true
       )
     ).toMatchInlineSnapshot(`
           Object {
@@ -90,7 +93,7 @@ describe('definePackageConfig output generation', () => {
       include: [],
       references: [
         {
-          path: '../../../package/y',
+          path: '../../../package/y/tsconfig.json',
         },
       ],
     });
@@ -99,7 +102,10 @@ describe('definePackageConfig output generation', () => {
   test('isolated kind', () => {
     const kind = definePackageConfig(
       {
-        kinds: { x: { include: ['these.files'], useDependencies: true, isolatedInDirectory: 'nested' } },
+        kinds: {
+          x: { include: ['these.files'], useDependencies: true, isolatedInDirectory: 'nested' },
+          y: { include: ['these.files'], useDependencies: true, isolatedInDirectory: 'not-existing' },
+        },
         paths: ['file-1'],
         baseConfig: '/user/x/tsconfig.js',
         entrypointResolver: () => [],
@@ -107,30 +113,47 @@ describe('definePackageConfig output generation', () => {
       '/user/x',
       '/user/x/.reference',
       { dependencies: { y: '1', z: 2 } } as any,
-      { y: { dir: '/user/package/y', packageJson: {} as any } }
+      { y: { dir: '/user/package/y', packageJson: {} as any } },
+      (folder) => folder == 'nested'
     );
-    expect(kind['tsconfig.json']).toBe(undefined);
 
-    expect(kind).toMatchInlineSnapshot(`
+    expect(kind['tsconfig.json']).toMatchInlineSnapshot(`
       Object {
-        "nested/tsconfig.json": Object {
-          "compilerOptions": Object {
-            "baseUrl": ".",
-            "composite": true,
-            "noEmit": false,
-            "tsBuildInfoFile": ".reference/.cache/main-reference",
-            "types": Array [],
-          },
-          "exclude": Array [],
-          "extends": "./tsconfig.json",
-          "include": Array [],
-          "references": Array [
-            Object {
-              "path": ".reference/config/tsconfig.x.json",
-            },
-          ],
+        "compilerOptions": Object {
+          "baseUrl": ".",
+          "composite": true,
+          "noEmit": false,
+          "tsBuildInfoFile": ".reference/.cache/main-reference",
+          "types": Array [],
         },
-        "tsconfig.json": undefined,
+        "exclude": Array [],
+        "extends": "./tsconfig.js",
+        "include": Array [],
+        "references": Array [
+          Object {
+            "path": ".reference/config/tsconfig.x.json",
+          },
+        ],
+      }
+    `);
+
+    expect(kind['nested/tsconfig.json']).toMatchInlineSnapshot(`
+      Object {
+        "compilerOptions": Object {
+          "baseUrl": ".",
+          "composite": true,
+          "noEmit": false,
+          "tsBuildInfoFile": ".reference/.cache/main-reference",
+          "types": Array [],
+        },
+        "exclude": Array [],
+        "extends": "./tsconfig.json",
+        "include": Array [],
+        "references": Array [
+          Object {
+            "path": ".reference/config/tsconfig.x.json",
+          },
+        ],
       }
     `);
 
@@ -151,7 +174,7 @@ describe('definePackageConfig output generation', () => {
       references: [
         {
           // should point to the nested directory
-          path: '../../../package/y',
+          path: '../../../package/y/tsconfig.json',
         },
       ],
     });
@@ -173,7 +196,8 @@ describe('definePackageConfig output generation', () => {
       '/user/x',
       '/user/x/.reference',
       { dependencies: { y: '1', z: 2 } } as any,
-      { y: { dir: '/user/package/y', packageJson: {} as any } }
+      { y: { dir: '/user/package/y', packageJson: {} as any } },
+      () => true
     );
     expect(Object.keys(result)).toEqual(['tests/tsconfig.json', 'tsconfig.public.json', 'tsconfig.json']);
 
@@ -184,6 +208,9 @@ describe('definePackageConfig output generation', () => {
         },
         Object {
           "path": ".reference/config/tsconfig.x.json",
+        },
+        Object {
+          "path": ".reference/config/tsconfig.z.json",
         },
       ]
     `);
@@ -204,13 +231,43 @@ describe('definePackageConfig output generation', () => {
       ]
     `);
   });
+
+  test('full isolated mode local config', () => {
+    definePackageConfig(
+      {
+        kinds: {
+          z: { include: ['xy.z'] },
+        },
+        paths: ['file-1'],
+        baseConfig: '/user/x/tsconfig.js',
+        isolatedMode: true,
+        entrypointResolver: () => [],
+      },
+      '/user/x',
+      '/user/x/.reference',
+      { dependencies: { y: '1', z: 2 } } as any,
+      { y: { dir: '/user/package/y', packageJson: {} as any } },
+      () => true
+    );
+
+    expect(writeJSON).toHaveBeenLastCalledWith(
+      '/user/x/.reference/config/tsconfig.z.json',
+      expect.objectContaining({
+        references: [
+          {
+            path: '../../../package/y/tsconfig.public.json',
+          },
+        ],
+      })
+    );
+  });
 });
 
 describe('reference remapper', () => {
   test('maps to internal endpoint', () => {
     definePackageConfig(
       {
-        kinds: { x: { include: [], useDependencies: true, relationMapper: (pkg) => ['', pkg.name] } },
+        kinds: { x: { include: [], useDependencies: true, relationMapper: (name, pkg) => [name, pkg.name] } },
         paths: ['file-1'],
         baseConfig: '/user/x/tsconfig.js',
         entrypointResolver: () => [],
@@ -218,7 +275,8 @@ describe('reference remapper', () => {
       '/user/x',
       '/user/x/.reference',
       { dependencies: { y: '1', z: 2 } } as any,
-      { y: { dir: '/user/package/y', packageJson: { name: 'pkgName' } as any } }
+      { y: { dir: '/user/package/y', packageJson: { name: 'pkgName' } as any } },
+      () => true
     );
 
     expect(writeJSON).toHaveBeenCalledWith('/user/x/.reference/config/tsconfig.x.json', {
@@ -237,7 +295,7 @@ describe('reference remapper', () => {
       include: [],
       references: [
         {
-          path: '../../../package/y',
+          path: '../../../package/y/tsconfig.json',
         },
         {
           path: '../../../package/y/pkgName',

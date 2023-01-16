@@ -25,12 +25,13 @@ export const getWorkspace = async (root: string): Promise<Package[]> => {
 
 export type PackageMap = Record<string, Package>;
 
-const directMapper: RelationMapper = () => [''];
+const directMapper: RelationMapper = (defaultPath) => [defaultPath];
 
 export const mapReference = (
   deps: Record<string, string> | undefined,
   root: string,
   packageMap: PackageMap,
+  defaultEntry: string,
   mapper: RelationMapper = directMapper
 ) => {
   const localPackages = Object.keys(deps || [])
@@ -38,6 +39,6 @@ export const mapReference = (
     .filter(Boolean);
 
   return localPackages
-    .flatMap((pkg) => mapper(pkg.packageJson, pkg.dir).map((subPath) => join(pkg.dir, subPath)))
+    .flatMap((pkg) => mapper(defaultEntry, pkg.packageJson, pkg.dir).map((subPath) => join(pkg.dir, subPath)))
     .map((location) => ({ path: relativeToLocal(root, location) }));
 };
