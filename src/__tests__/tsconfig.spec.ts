@@ -232,6 +232,38 @@ describe('definePackageConfig output generation', () => {
     `);
   });
 
+  test('full isolated mode with nested made public', () => {
+    const result = definePackageConfig(
+      {
+        kinds: {
+          x: { include: [], useDependencies: true, internal: true },
+          y: { include: [], useDependencies: true },
+          z: { include: ['xy.z'], useDependencies: true, isolatedInDirectory: 'tests', internal: false },
+        },
+        paths: ['file-1'],
+        baseConfig: '/user/x/tsconfig.js',
+        isolatedMode: true,
+        entrypointResolver: () => [],
+      },
+      '/user/x',
+      '/user/x/.reference',
+      { dependencies: { y: '1', z: 2 } } as any,
+      { y: { dir: '/user/package/y', packageJson: {} as any } },
+      () => true
+    );
+
+    expect(result['tsconfig.public.json']!.references).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "path": ".reference/config/tsconfig.y.json",
+        },
+        Object {
+          "path": ".reference/config/tsconfig.z.json",
+        },
+      ]
+    `);
+  });
+
   test('full isolated mode local config', () => {
     definePackageConfig(
       {

@@ -340,6 +340,7 @@ the _purity_ of the solution.
   - `internal` per kind configuration property will remove kind from the `public` interface, thus separating private
     sources(tests) with the "real" ones(source)
     - there is no way to _reference_ internal kind from the workspace, only `isolatedInDirectory` one
+    - `isolatedInDirectory` are "private by default", but can became public via `internal=false` setting
 
 ## See also
 

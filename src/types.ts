@@ -17,8 +17,10 @@ export interface Kind {
    * marks kind as internals disallowing references from the outside
    * Can be used to hard separate tests and code
    * requires {@see isolatedMode} setting enabled
+   *
+   * {@see isolatedInDirectory} are internal by default, but can be make public via this property
    */
-  internal?: true;
+  internal?: boolean;
   isolatedInDirectory?: string;
   /**
    * pattern to include files. Equal to tsconfig's `include` prop
