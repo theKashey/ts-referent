@@ -80,7 +80,7 @@ export const definePackageConfig = (
   }
 
   const isolatedPackages = kindsFilter(kinds, (_, kind) => Boolean(kind.isolatedInDirectory));
-  const privatePackages = kindsFilter(kinds, (_, kind) => Boolean(kind.internal));
+  const privatePackages = kindsFilter(kinds, (name, kind) => !isolatedPackages[name] && Boolean(kind.internal));
   const createdIsolatedPackages: KindSet = {};
 
   const publicPackages = kindsFilter(kinds, (name) => !isolatedPackages[name] && !privatePackages[name]);
