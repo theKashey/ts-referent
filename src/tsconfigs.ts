@@ -83,11 +83,6 @@ export const definePackageConfig = (
   const privatePackages = kindsFilter(kinds, (name, kind) => !isolatedPackages[name] && Boolean(kind.internal));
   const createdIsolatedPackages: KindSet = {};
 
-  const publicPackages = kindsFilter(
-    kinds,
-    (name, kind) => (!isolatedPackages[name] && !privatePackages[name]) || kind.internal === false
-  );
-
   const constellation: Record<string, PackageTypeRoot> = {};
   const localRootConfig = join(packageDir, 'tsconfig.json');
 
@@ -105,6 +100,15 @@ export const definePackageConfig = (
       );
     }
   });
+
+  const publicPackages = kindsFilter(
+    kinds,
+    (name, kind) =>
+      // not used before
+      (!isolatedPackages[name] && !privatePackages[name]) ||
+      // explicit includes
+      (createdIsolatedPackages[name] && kind.internal === false)
+  );
 
   if (config.isolatedMode) {
     constellation['tsconfig.public.json'] = defineLocalConfig(
