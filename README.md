@@ -202,6 +202,37 @@ export default configure({
 });
 ```
 
+### Configuring eslint
+
+As long as **project references are not directly supported** by eslint there is only one, but good, way to handle this.
+
+➡️ Use the same file names pattern matching you've used for kinds
+
+In the eslintrc add [an override section](https://eslint.org/docs/latest/use/configure/configuration-files#configuration-based-on-glob-patterns) working only for a specific files
+
+```json5
+{
+  rules: {
+    //    someRules
+  },
+  overrides: [
+    // kind 1
+    {
+      files: ['include-pattern'],
+      excludedFiles: ['exclude-pattern'],
+      parserOptions: {
+        // ⚠️ tsconfig "repeating" kind configuration
+        project: './tsconfig.kind.json',
+      },
+      // overrides of this sort are required ONLY for advanced typescript-eslint rules
+      extends: ['plugin:@typescript-eslint/recommended-requiring-type-checking'],
+    },
+  ],
+}
+```
+
+Right now you will have to create `tsconfig.kind.json` and keep in in sync with kinds configuration. We are working on automating this moment.
+
 ## Advanced
 
 Kinds configuration can be nested and also can be based on functions to _derive_ new configuration from the previous one
