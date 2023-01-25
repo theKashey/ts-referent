@@ -104,7 +104,7 @@ program
               );
             }
 
-            [...(entrypointResolver?.(pkg.packageJson, pkg.dir) ?? []), ['', pkg.packageJson.main || '']].forEach(
+            [['', pkg.packageJson.main || ''], ...(entrypointResolver?.(pkg.packageJson, pkg.dir) ?? [])].forEach(
               ([entry, point]) => {
                 acc[`${pkg.packageJson.name}${entry}`] = [join(pkg.dir, point)];
               }
