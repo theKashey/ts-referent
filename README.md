@@ -53,6 +53,8 @@ sure am I happy or not...
   - [issue](https://github.com/vercel/turbo/issues/331), [another issue](https://github.com/microsoft/TypeScript/issues/39778)
   - expected to be [improved in TS 5](https://github.com/microsoft/TypeScript/issues/51269)
 - ⚠️regenerate references on `postinstall` hook to reflect changes in `package.json`
+  - 💩 that is not working for yarn ([issue](https://github.com/yarnpkg/yarn/issues/5790)), you need to [use a plugin](https://gist.github.com/theKashey/3614c91bcd6bd3fb116172297a3522fb) (yarn 2+)
+  - npm and pnpm under investagation...
 
 #### Other things to know
 
