@@ -14,7 +14,7 @@
   },
   "author": "Anton Korzunov <thekashey@gmail.com>",
   "bin": {
-    "ts-referent": "./dist/es5/cli.js"
+    "ts-referent": "./dist/es5/cli-runner.js"
   },
   "files": [
     "dist"
@@ -28,7 +28,7 @@
     "dev": "lib-builder dev",
     "test": "jest",
     "test:ci": "jest --runInBand --coverage",
-    "set-permissions": "chmod +x ./dist/es5/cli.js",
+    "set-permissions": "chmod +x ./dist/es5/cli-runner.js",
     "build": "lib-builder build && yarn set-permissions",
     "release": "yarn build && yarn test",
     "lint": "lib-builder lint",

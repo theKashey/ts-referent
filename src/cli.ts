@@ -10,10 +10,11 @@ import type { Package } from './package-interface';
 import { getConfigLocation } from './references';
 import { definePackageConfig } from './tsconfigs';
 import { writeJSON } from './utils/fs';
+import { getVersion } from './utils/get-version';
 import { globToRegExp } from './utils/glob-to-regex';
 import { getRoot, getWorkspace, PackageMap } from './utils/workspace';
 
-const program = sade('ts-referent', false).version(require('../../package.json').version);
+const program = sade('ts-referent', false).version(getVersion());
 
 program.command('build', 'creates references').action(async () => {
   const root = getRoot();
@@ -83,14 +84,22 @@ program
 
 program
   .command('paths <configFileName>', 'generates lookup table for paths used in monorepo')
-  .action(async (fileName) => {
+  .option('--extends', 'tsconfig to extend from')
+  .action(async (fileName, options) => {
     const root = getRoot();
     const packages = await getWorkspace(root);
     const kindsCache = getKindsCache(packages, root);
 
+    const config: Record<string, string> = {};
+
+    if (options['extends']) {
+      config['extends'] = options['extends'];
+    }
+
     writeJSON(
       fileName,
       {
+        ...config,
         compilerOptions: {
           paths: packages.reduce<Record<string, string[]>>((acc, pkg) => {
             const { entrypointResolver, paths } = getKinds(kindsCache, pkg.dir, pkg);
@@ -118,4 +127,4 @@ program
     );
   });
 
-program.parse(process.argv);
+export { program };

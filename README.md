@@ -100,8 +100,10 @@ yarn add --dev ts-referent
 ### Optional
 
 - `ts-referent paths tscofig.paths.json` - creates tsconfigs "aliases" you might want to extend your "base" one from, as
-  it
-  contains all links to all local packages and helps with autoimports and other stuff.
+  it contains all links to all local packages and helps with auto-imports and other stuff.
+  - supports extra option `--extends` to configure configuration it should extend itself from. Extension is not required for TS5 as it supports multiple inheritance for configuration.
+
+> you might need configure entrypointResolver ONLY if you use this feature
 
 ## Configuration
 
@@ -203,6 +205,36 @@ export default configure({
   },
 });
 ```
+
+### Supporting `export` field
+
+In order to support package `export` field one need to configure `entrypointResolver`
+
+```tsx
+const pickExport = (entry) => {
+  if (typeof entry === 'string') {
+    return entry;
+  }
+  return entry['import'] || entry['require'];
+}
+export default configure({
+  baseConfig: require.resolve('tsconfig.json'),
+  // ⬇️
+  entrypointResolver: (packageJSON, dir) => {
+      if(!packageJSON.exports){
+          // fallback to defaults (main field)
+          return [];
+      }
+      return Object.entries(pkg.exports).map(([relativeName, pointsTo]) => {
+        const name = relativeName.substring(2);
+        // './entrypoint' -> `entrypoint` -> `/entrypoint`
+        return [name ? `/${name}` : '', pickExport(pointsTo)]
+      })
+  },
+```
+
+As you might see - the following code will support only flat export map with minimal conditions.
+We do recommend using [resolve.exports](https://github.com/lukeed/resolve.exports) for anything more complex.
 
 ### Configuring eslint
 
