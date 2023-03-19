@@ -2,7 +2,7 @@ import { join } from 'path';
 
 import type { PackageJSON } from './package-interface';
 import type { Kind } from './types';
-import { valueOrFactory } from './utils/factory';
+import { valueOrFactoryFold } from './utils/factory';
 import { writeJSON } from './utils/fs';
 import { relativeToLocal } from './utils/paths';
 import { mapReference, PackageMap } from './utils/workspace';
@@ -20,7 +20,21 @@ export const defineReference = (
   packageMap: PackageMap
 ) => {
   const location = join(configLocation, 'config');
-  const output = join(valueOrFactory(kind.outDirRoot, packageJson, packageDir) ?? configLocation, 'output', kindName);
+  const output =
+    valueOrFactoryFold(
+      kind.outputDirectory,
+      (dir) => join(packageDir, dir),
+      (fn) => fn(packageJson, packageDir)
+    ) ??
+    join(
+      valueOrFactoryFold(
+        kind.outDirRoot,
+        (dir) => join(packageDir, dir),
+        (fn) => fn(packageJson, packageDir)
+      ) ?? configLocation,
+      'output',
+      kindName
+    );
   const configurationLocation = kind.isolatedInDirectory ? join(packageDir, kind.isolatedInDirectory) : packageDir;
 
   const useDependencies = kind.useDependencies ?? true;

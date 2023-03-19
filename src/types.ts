@@ -52,8 +52,13 @@ export interface Kind {
   extends?: string;
   /**
    * a pointer to output directly. Can be defined as a function
+   * @deprecated use {@link outputDirectory} for more precise control
    */
   outDirRoot?: string | ((pkg: Package['packageJson'], currentDir: string) => string);
+  /**
+   * a pointer to output directly. Can be defined as a function
+   */
+  outputDirectory?: string | ((pkg: Package['packageJson'], currentDir: string) => string);
   /**
    * all other compiler options for a kind
    */
