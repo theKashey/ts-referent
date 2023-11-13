@@ -50,6 +50,7 @@ export const defineLocalConfig = (
       types: [],
       noEmit: false,
       tsBuildInfoFile: relativeToLocal(packageDir, join(configLocation, '.cache', 'main-reference')),
+      ...conf.compilerOptions,
     },
   };
 };

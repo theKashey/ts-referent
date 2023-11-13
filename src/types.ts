@@ -101,6 +101,12 @@ export type ConfigurationFile = {
    */
   baseConfig?: string;
   /**
+   * Compiler options to add into every file
+   * @deprecated - you might never need it as they are ignored by TS
+   * @example - set `jsx:'react-jsx'` aid esbuild not following references
+   */
+  compilerOptions?: CompilerOptions;
+  /**
    * confuguration of kinds to use below this point
    */
   kinds?: KindsConfigurationSet;
@@ -116,6 +122,7 @@ export type ConfigurationFile = {
 };
 export type ResolvedConfiguration = {
   baseConfig: string | undefined;
+  compilerOptions?: CompilerOptions;
   kinds: KindSet;
   entrypointResolver: EntrypointResolver | undefined;
   paths: ReadonlyArray<string>;

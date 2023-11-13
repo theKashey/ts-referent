@@ -7,11 +7,9 @@ this one is trying to manage actually _project_ references, not _package_.
 It still will generate configs for all your packages and do that for **any package manager**, but can do more than just
 this.
 
-## Known flaws
+> to understand why you might need "cutting relations" please read [One Thing Nobody Explained To You About TypeScript](https://kettanaito.com/blog/one-thing-nobody-explained-to-you-about-typescript)
 
-> yes, better to know them upfront
->
-> PS: The main flaw is gramma and the overall style of this document. Please help.
+## Known flaws
 
 😅🫠👨‍🔬 Let me be honest - project references gave me quite the miserable experience. Everything blew up and I still not
 sure am I happy or not...
