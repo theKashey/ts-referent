@@ -36,6 +36,8 @@ export const defineReference = (
       kindName
     );
   const configurationLocation = kind.isolatedInDirectory ? join(packageDir, kind.isolatedInDirectory) : packageDir;
+  const focusOn = kind.isolatedInDirectory || kind.focusOnDirectory;
+  const directoryLocation = focusOn ? join(packageDir, focusOn) : packageDir;
 
   const useDependencies = kind.useDependencies ?? true;
   const useDevDependencies = kind.useDevDependencies ?? true;
@@ -76,8 +78,8 @@ export const defineReference = (
       ...kind.compilerOptions,
       noEmit: false,
       outDir: relativeToLocal(location, output),
-      rootDir: relativeToLocal(location, configurationLocation),
-      baseUrl: relativeToLocal(location, configurationLocation),
+      rootDir: relativeToLocal(location, directoryLocation),
+      baseUrl: relativeToLocal(location, directoryLocation),
       tsBuildInfoFile: relativeToLocal(location, join(configLocation, '.cache', kindName)),
       types: kind.types,
     },

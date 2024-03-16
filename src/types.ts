@@ -21,7 +21,17 @@ export interface Kind {
    * {@see isolatedInDirectory} are internal by default, but can be make public via this property
    */
   internal?: boolean;
+  /**
+   * strictly focuses on a particular directory by placing tsconfig inside it (for example top level tests or examples)
+   * Only one kind can be "isolated" in one directory. Use `focusDirectory` to soft-focus
+   */
   isolatedInDirectory?: string;
+  /**
+   * sets base path to a directory (usually `src`)
+   * Mostly required to simplify `exclude` configuration or flatten "dist" directory (only for publishable packages)
+   * Note the `include` mask should not include files outside of focus directory
+   */
+  focusOnDirectory?: string;
   /**
    * pattern to include files. Equal to tsconfig's `include` prop
    */
@@ -116,7 +126,7 @@ export type ConfigurationFile = {
   entrypointResolver?: EntrypointResolver;
   /**
    * activates package isolation mode, see documentation
-   * This will at least create one extra tsconfig per package
+   * This will at least create one extra tsconfig per package (internal / public tsconfigs)
    */
   isolatedMode?: boolean;
 };

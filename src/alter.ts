@@ -24,14 +24,14 @@ type AlterOptions = {
  * @param kinds
  */
 export const alter = (
-  kinds: PartialKindSet | ((currentParent: Package) => PartialKindSet),
+  kinds: PartialKindSet | ((currentParent: Package, currentKinds: KindSet) => PartialKindSet),
   options: AlterOptions = {}
 ): {
   kinds: KindsConfigurationResolver;
 } => {
   return {
     kinds: (base, currentPackage) => {
-      const amendments = valueOrFactory(kinds, currentPackage) || {};
+      const amendments = valueOrFactory(kinds, currentPackage, base) || {};
       const knownTypes = new Set([...Object.keys(base), ...Object.keys(amendments)]);
       const result: KindSet = {};
 
