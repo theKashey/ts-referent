@@ -99,6 +99,41 @@ describe('definePackageConfig output generation', () => {
     });
   });
 
+  test('can disable baseUrl emission', () => {
+    const result = definePackageConfig(
+      {
+        kinds: { x: { include: [], useDependencies: true } },
+        paths: ['file-1'],
+        baseConfig: '/user/x/tsconfig.js',
+        entrypointResolver: () => [],
+        useBaseUrl: false,
+      },
+      '/user/x',
+      '/user/x/.reference',
+      { dependencies: { y: '1', z: 2 } } as any,
+      { y: { dir: '/user/package/y', packageJson: {} as any } },
+      () => true
+    );
+
+    expect(result['tsconfig.json']!.compilerOptions).toEqual({
+      composite: true,
+      noEmit: false,
+      tsBuildInfoFile: '.reference/.cache/main-reference',
+      types: [],
+    });
+
+    const firstWrite = (writeJSON as jest.Mock).mock.calls[0][1];
+
+    expect(firstWrite.compilerOptions).toEqual({
+      composite: true,
+      noEmit: false,
+      outDir: '../output/x',
+      rootDir: '../..',
+      tsBuildInfoFile: '../.cache/x',
+      types: undefined,
+    });
+  });
+
   test('isolated kind', () => {
     const kind = definePackageConfig(
       {

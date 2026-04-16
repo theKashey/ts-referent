@@ -15,6 +15,7 @@ export const defineReference = (
   kindName: string,
   kind: Kind,
   isolationMode: boolean,
+  useBaseUrlByDefault: boolean,
   packageDir: string,
   packageJson: PackageJSON,
   packageMap: PackageMap
@@ -41,6 +42,7 @@ export const defineReference = (
 
   const useDependencies = kind.useDependencies ?? true;
   const useDevDependencies = kind.useDevDependencies ?? true;
+  const useBaseUrl = kind.useBaseUrl ?? useBaseUrlByDefault;
 
   const defaultEntry = isolationMode ? `tsconfig.public.json` : `tsconfig.json`;
 
@@ -79,7 +81,7 @@ export const defineReference = (
       noEmit: false,
       outDir: relativeToLocal(location, output),
       rootDir: relativeToLocal(location, directoryLocation),
-      baseUrl: relativeToLocal(location, directoryLocation),
+      ...(useBaseUrl ? { baseUrl: relativeToLocal(location, directoryLocation) } : undefined),
       tsBuildInfoFile: relativeToLocal(location, join(configLocation, '.cache', kindName)),
       types: kind.types,
     },

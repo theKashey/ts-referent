@@ -31,6 +31,7 @@ export const getKinds = (kindsCache: KindCache, dir: string, pkg: Package): Read
     entrypointResolver: undefined,
     kinds: {},
     paths: [],
+    useBaseUrl: true,
   };
   const paths: string[] = [];
 

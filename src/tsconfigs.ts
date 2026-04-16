@@ -14,6 +14,8 @@ export const defineLocalConfig = (
   packageJson: PackageJSON,
   packageMap: PackageMap
 ): Record<string, any> | undefined => {
+  const useBaseUrl = conf.useBaseUrl ?? true;
+
   if (!conf.baseConfig) {
     throw new Error(
       'base `baseConfig` is not defined for ' + packageDir + '. Configuration files used: ' + paths.join(',')
@@ -38,6 +40,7 @@ export const defineLocalConfig = (
             kindName,
             kind!,
             conf.isolatedMode || false,
+            useBaseUrl,
             packageDir,
             packageJson,
             packageMap
@@ -46,7 +49,7 @@ export const defineLocalConfig = (
       })),
     compilerOptions: {
       composite: true,
-      baseUrl: '.',
+      ...(useBaseUrl ? { baseUrl: '.' } : undefined),
       types: [],
       noEmit: false,
       tsBuildInfoFile: relativeToLocal(packageDir, join(configLocation, '.cache', 'main-reference')),

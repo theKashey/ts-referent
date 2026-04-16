@@ -104,6 +104,12 @@ export interface Kind {
    *  'secretEntry/tsconfig.json']
    */
   relationMapper?: RelationMapper;
+  /**
+   * Controls `baseUrl` emission for generated kind tsconfig.
+   *
+   * @default inherits global `useBaseUrl` (true)
+   */
+  useBaseUrl?: boolean;
 }
 export type ConfigurationFile = {
   /**
@@ -129,6 +135,12 @@ export type ConfigurationFile = {
    * This will at least create one extra tsconfig per package (internal / public tsconfigs)
    */
   isolatedMode?: boolean;
+  /**
+   * Controls `baseUrl` emission for generated tsconfigs.
+   *
+   * @default true
+   */
+  useBaseUrl?: boolean;
 };
 export type ResolvedConfiguration = {
   baseConfig: string | undefined;
@@ -137,6 +149,7 @@ export type ResolvedConfiguration = {
   entrypointResolver: EntrypointResolver | undefined;
   paths: ReadonlyArray<string>;
   isolatedMode?: boolean;
+  useBaseUrl?: boolean;
 };
 export type EntrypointResolver = (pkg: PackageJSON, currentDir: string) => ReadonlyArray<readonly [string, string]>;
 export type KindSet = Record<string, Kind>;
