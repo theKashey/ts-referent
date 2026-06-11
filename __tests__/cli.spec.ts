@@ -48,10 +48,10 @@ describe('cli', function () {
           "compilerOptions": Object {
             "paths": Object {
               "package1": Array [
-                "/user1/package1/index.ts",
+                "./package1/index.ts",
               ],
               "package2": Array [
-                "/user1/package2/main.ts",
+                "./package2/main.ts",
               ],
             },
           },

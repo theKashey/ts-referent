@@ -12,6 +12,7 @@ import { definePackageConfig } from './tsconfigs';
 import { writeJSON } from './utils/fs';
 import { getVersion } from './utils/get-version';
 import { globToRegExp } from './utils/glob-to-regex';
+import { relativeToLocal } from './utils/paths';
 import { getRoot, getWorkspace, PackageMap } from './utils/workspace';
 
 const program = sade('ts-referent', false).version(getVersion());
@@ -96,35 +97,31 @@ program
       config['extends'] = options['extends'];
     }
 
-    writeJSON(
-      fileName,
-      {
-        ...config,
-        compilerOptions: {
-          paths: packages.reduce<Record<string, string[]>>((acc, pkg) => {
-            const { entrypointResolver, paths } = getKinds(kindsCache, pkg.dir, pkg);
+    writeJSON(fileName, {
+      ...config,
+      compilerOptions: {
+        paths: packages.reduce<Record<string, string[]>>((acc, pkg) => {
+          const { entrypointResolver, paths } = getKinds(kindsCache, pkg.dir, pkg);
 
-            if (!paths.length) {
-              throw new Error(
-                'no configuration files has been found for ' +
-                  pkg.dir +
-                  '\n' +
-                  "Start by placing `tsconfig.referent.js` at the project's root directory"
-              );
-            }
-
-            [['', pkg.packageJson.main || ''], ...(entrypointResolver?.(pkg.packageJson, pkg.dir) ?? [])].forEach(
-              ([entry, point]) => {
-                acc[`${pkg.packageJson.name}${entry}`] = [join(pkg.dir, point)];
-              }
+          if (!paths.length) {
+            throw new Error(
+              'no configuration files has been found for ' +
+                pkg.dir +
+                '\n' +
+                "Start by placing `tsconfig.referent.js` at the project's root directory"
             );
+          }
 
-            return acc;
-          }, {}),
-        },
+          [['', pkg.packageJson.main || ''], ...(entrypointResolver?.(pkg.packageJson, pkg.dir) ?? [])].forEach(
+            ([entry, point]) => {
+              acc[`${pkg.packageJson.name}${entry}`] = [`./${join(relativeToLocal(root, pkg.dir), point)}`];
+            }
+          );
+
+          return acc;
+        }, {}),
       },
-      '/* ⚠️ please git ignore this file as it contains absolute paths working only on your machine */'
-    );
+    });
   });
 
 export { program };
